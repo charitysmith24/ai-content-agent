@@ -1,3 +1,5 @@
+import { Brain } from "lucide-react";
+
 type AgentPulseProps = {
   size?: "small" | "medium" | "large";
   color?: "primary" | "secondary" | "tertiary";
@@ -18,7 +20,11 @@ function AgentPulse({ size = "medium", color = "primary" }: AgentPulseProps) {
   return (
     <div
       className={`${sizeClasses[size]} ${colorClasses[color]} rounded-full animate-pulse`}
-    />
+    >
+      <Brain
+        className={`${sizeClasses[size]} animate-pulse text-white/50 dark:text-rose-700 place-items-center`}
+      />
+    </div>
   );
 }
 export default AgentPulse;

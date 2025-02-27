@@ -1,5 +1,5 @@
 import AgentPulse from "@/components/AgentPulse";
-import { FooterWrapper } from "@/components/FooterWrapper";
+import Pricing from "@/components/Pricing";
 import YoutubeVideoForm from "@/components/YoutubeVideoForm";
 import { Brain, ImageIcon, MessageSquare, Sparkles, Video } from "lucide-react";
 //import { HeroSectionBlock } from "@/components/HeroSectionBlock";
@@ -90,7 +90,7 @@ export default function Home() {
                 AI Content Agent
               </span>
             </h1>
-            <p className="text-xl text-gray-600 dark:text-gray-300 mb-8 max-w-2xl mx-auto">
+            <p className="text-xl text-gray-600 dark:text-white/80 mb-8 max-w-2xl mx-auto">
               Transform your video content with AI-powered analysis,
               transcription, and insights. Get started in seconds.
             </p>
@@ -125,7 +125,7 @@ export default function Home() {
                     <h3 className="text-xl font-semibold mb-2">
                       {feature.title}
                     </h3>
-                    <p className="text-gray-600 dark:text-white">
+                    <p className="text-gray-600 dark:text-white/80">
                       {feature.description}
                     </p>
                   </div>
@@ -154,7 +154,7 @@ export default function Home() {
                     <Icon className={`size-8 text-white`} />
                   </div>
                   <h3 className="text-xl font-semibold mb-2">{step.title}</h3>
-                  <p className="text-gray-600 dark:text-white">
+                  <p className="text-gray-600 dark:text-white/80">
                     {step.description}
                   </p>
                 </div>
@@ -164,8 +164,8 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Footer Section */}
-      <FooterWrapper />
+      {/* PRICING SECTION */}
+      <Pricing />
     </div>
   );
 }
