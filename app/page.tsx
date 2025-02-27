@@ -103,7 +103,7 @@ export default function Home() {
 
       {/* Features Section */}
       <section className="py-32 bg-white dark:bg-black/90">
-        <div className="container mx-auto px-4 max-w-6xl">
+        <div className="container mx-auto px-4 max-w-5xl">
           <div className="flex flex-col items-center gap-10 text-center mb-12">
             <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-6">
               Powerful Features for Content Creators
@@ -137,7 +137,7 @@ export default function Home() {
       </section>
       {/* How it works section*/}
       <section className="py-32 bg-white dark:bg-black/90">
-        <div className="container mx-auto px-4 pb-12 max-w-6xl">
+        <div className="container mx-auto px-4 pb-12 max-w-5xl">
           <h2 className="text-3xl font-bold text-center mb-12">
             Meet Your AI Agent in 3 Simple Steps
           </h2>

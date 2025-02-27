@@ -79,7 +79,7 @@ export default function Example() {
 
   return (
     <div className="bg-white dark:bg-black/90 py-24 sm:py-32">
-      <div className="mx-auto max-w-6xl px-6 lg:px-8 ">
+      <div className="mx-auto max-w-5xl px-6 lg:px-8 ">
         <div className="mx-auto max-w-4xl text-center">
           <h2 className="text-3xl font-bold text-rose-700">Pricing</h2>
           <p className="mt-2 text-5xl font-semibold tracking-tight text-gray-900 dark:text-white sm:text-6xl">
