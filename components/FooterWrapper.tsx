@@ -30,7 +30,7 @@ function FooterWrapper() {
           },
         ]}
         mainLinks={[
-          { href: "/#", label: "Newsletter" },
+          { href: "/newsletter", label: "Newsletter" },
           { href: "/contact", label: "Contact" },
         ]}
         legalLinks={[
