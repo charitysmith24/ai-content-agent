@@ -27,13 +27,13 @@ function Header() {
               <Link href={`/manage-plan`}>
                 <Button
                   variant={"outline"}
-                  className="mr-4 bg-gradient-to-r from-primary/50 to-primary/80 text-transparent bg-clip-text border-primary/20 dark:border-primary/40"
+                  className="mr-4 bg-gradient-to-r from-primary to-rose-700 text-transparent bg-clip-text border-primary/40 dark:border-primary/40 font-bold"
                 >
                   Manage Plan
                 </Button>
               </Link>
             </SignedIn>
-            <div className="size-9 px-8 flex items-center justify-center rounded-md">
+            <div className="size-9 px-8 flex items-center justify-center rounded-md gap-3">
               <UserButton
                 appearance={{
                   baseTheme: theme === "dark" ? dark : undefined,
@@ -63,10 +63,10 @@ function Header() {
                   </Button>
                 </SignInButton>
               </SignedOut>
+              <div>
+                <ThemeToggle />
+              </div>
             </div>
-
-            {/* <SignedOut /> */}
-            <ThemeToggle />
           </div>
         </div>
       </div>

@@ -32,7 +32,7 @@ export function Footer({
   copyright,
 }: FooterProps) {
   return (
-    <footer className="pb-6 pt-16 lg:pb-8 lg:pt-24">
+    <footer className="pb-6 pt-16 lg:pb-8 lg:pt-24 bg-gradient-to-b from-white to-rose-50 dark:from-primary/0 dark:to-primary/0">
       <div className="px-4 lg:px-8">
         <div className="md:flex md:items-start md:justify-between">
           <Link
@@ -51,7 +51,7 @@ export function Footer({
                 <Button
                   variant="secondary"
                   size="icon"
-                  className="h-10 w-10 rounded-full"
+                  className="h-10 w-10 rounded-full border border-primary/20 hover:border-rose-600 transition-all duration-300"
                   asChild
                 >
                   <a href={link.href} target="_blank" aria-label={link.label}>
