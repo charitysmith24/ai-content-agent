@@ -1,6 +1,5 @@
 "use client";
 
-import ChatMessage from "@/components/ChatMessage";
 import ThumbnailGeneration from "@/components/ThumbnailGeneration";
 import TitleGeneration from "@/components/TitleGeneration";
 import Transcription from "@/components/Transcription";
