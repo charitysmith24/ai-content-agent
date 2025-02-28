@@ -1,4 +1,4 @@
-import { Brain } from "lucide-react";
+import { Video } from "lucide-react";
 
 type AgentPulseProps = {
   size?: "small" | "medium" | "large";
@@ -14,15 +14,15 @@ function AgentPulse({ size = "medium", color = "primary" }: AgentPulseProps) {
 
   const colorClasses = {
     primary: "bg-primary/60 shadow-[0_0_8px_4px_rgba(226,29,72,0.8)]",
-    secondary: "bg-secondary/60 shadow-[0_0_8px_4px_rgba(39,39,42,0.1)]",
-    tertiary: "bg-tertiary/60 shadow-[0_0_8px_4px_rgba(229,54,112,0.1)]",
+    secondary: "bg-secondary/60 shadow-[0_0_8px_4px_rgba(39,39,42,0.8)]",
+    tertiary: "bg-tertiary/60 shadow-[0_0_8px_4px_rgba(229,54,112,0.8)]",
   };
   return (
     <div
       className={`${sizeClasses[size]} ${colorClasses[color]} rounded-full animate-pulse`}
     >
-      <Brain
-        className={`${sizeClasses[size]} animate-pulse text-white/50 dark:text-rose-700 place-items-center`}
+      <Video
+        className={`${sizeClasses[size]} animate-pulse text-white/50 dark:text-rose-700 place-items-center p-2`}
       />
     </div>
   );
