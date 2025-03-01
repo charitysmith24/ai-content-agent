@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 
 import { FeatureFlag } from "@/features/flags";
@@ -30,7 +31,7 @@ function TitleGeneration({ videoId }: { videoId: string }) {
 
       {/* Titles Grid */}
       <div className="space-y-3 mt-4 max-h-[280px] overflow-y-auto">
-        {titles?.map((title) => (
+        {/* {titles?.map((title) => (
           <div
             key={title._id}
             className="group relative p-4 rounded-lg border border-gray-100 dark:border-primary/50 hover:border-primary/10 hover:bg-blue-50 transition-all duration-200"
@@ -48,7 +49,7 @@ function TitleGeneration({ videoId }: { videoId: string }) {
               </button>
             </div>
           </div>
-        ))}
+        ))} */}
       </div>
 
       {/* No titles yet */}

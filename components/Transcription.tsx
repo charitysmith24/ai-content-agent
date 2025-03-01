@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { FeatureFlag } from "@/features/flags";
 import { useSchematicEntitlement } from "@schematichq/schematic-react";
 import { useState } from "react";
