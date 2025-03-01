@@ -144,7 +144,6 @@ export function VercelV0Chat() {
             </div>
           </div>
         </div>
-
         <div className="flex items-center justify-center gap-3 mt-4"></div>
       </div>
     </div>
