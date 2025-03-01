@@ -12,7 +12,7 @@ function Header() {
   const { theme } = useTheme();
   return (
     <header className="sticky top-0 z-50 left-0 right-0 md:px-0 bg-white/80 backdrop-blur-sm border-b border-gray-200 dark:bg-white/10 dark:border-gray-800">
-      <div className="container mx-auto">
+      <div className="container mx-auto px-6">
         <div className="flex items-center justify-between h-16">
           <div className="flex items-center justify-between h-16">
             <Link href="/" className="flex items-center gap-4">
@@ -22,7 +22,7 @@ function Header() {
               </h1>
             </Link>
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center justify-between">
             <SignedIn>
               <Link href={`/manage-plan`}>
                 <Button
@@ -33,7 +33,8 @@ function Header() {
                 </Button>
               </Link>
             </SignedIn>
-            <div className="size-9 px-8 flex items-center justify-center rounded-md gap-3">
+            <ThemeToggle />
+            <div className="size-9 px-8 flex items-center justify-center rounded-md">
               <UserButton
                 appearance={{
                   baseTheme: theme === "dark" ? dark : undefined,
@@ -63,9 +64,9 @@ function Header() {
                   </Button>
                 </SignInButton>
               </SignedOut>
-              <div>
+              {/* <div>
                 <ThemeToggle />
-              </div>
+              </div> */}
             </div>
           </div>
         </div>

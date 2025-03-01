@@ -1,47 +1,53 @@
-import { Github, Twitter, Brain, Instagram, Linkedin } from "lucide-react";
+import { Github, Twitter, Video, Instagram, Linkedin } from "lucide-react";
 import { Footer } from "@/components/ui/footer";
 
 function FooterWrapper() {
   return (
-    <div className="w-full">
-      <Footer
-        logo={<Brain className="h-10 w-10 animate-pulse text-rose-700" />}
-        brandName="ClipSage"
-        socialLinks={[
-          {
-            icon: <Twitter className="h-5 w-5 text-rose-700" />,
-            href: "https://x.com/CharitySmith24",
-            label: "Twitter",
-          },
-          {
-            icon: <Instagram className="h-5 w-5 text-rose-700" />,
-            href: "https://www.instagram.com/charity.smith24/",
-            label: "GitHub",
-          },
-          {
-            icon: <Linkedin className="h-5 w-5 text-rose-700" />,
-            href: "https://www.linkedin.com/in/charitysmith40175/",
-            label: "LinkedIn",
-          },
-          {
-            icon: <Github className="h-5 w-5 text-rose-700" />,
-            href: "https://github.com/charitysmith24",
-            label: "GitHub",
-          },
-        ]}
-        mainLinks={[
-          { href: "/newsletter", label: "Newsletter" },
-          { href: "/contact", label: "Contact" },
-        ]}
-        legalLinks={[
-          { href: "/privacy", label: "Privacy" },
-          { href: "/tos", label: "Terms" },
-        ]}
-        copyright={{
-          text: "© 2024 ClipSage.",
-          license: "All rights reserved",
-        }}
-      />
+    <div className="bg-gradient-to-b from-white to-rose-50 dark:to-primary/10 dark:from-primary/0 px-4">
+      <div className="container w-full mx-auto">
+        <Footer
+          logo={<Video className="size-10 animate-pulse text-rose-700" />}
+          brandName="ClipSage"
+          socialLinks={[
+            {
+              icon: <Twitter className="size-5 text-rose-700 bg-transparent" />,
+              href: "https://x.com/CharitySmith24",
+              label: "Twitter",
+            },
+            {
+              icon: (
+                <Instagram className="size-5 text-rose-700 bg-transparent" />
+              ),
+              href: "https://www.instagram.com/charity.smith24/",
+              label: "GitHub",
+            },
+            {
+              icon: (
+                <Linkedin className="size-5 text-rose-700 bg-transparent" />
+              ),
+              href: "https://www.linkedin.com/in/charitysmith40175/",
+              label: "LinkedIn",
+            },
+            {
+              icon: <Github className="size-5 text-rose-700 bg-transparent" />,
+              href: "https://github.com/charitysmith24",
+              label: "GitHub",
+            },
+          ]}
+          mainLinks={[
+            { href: "/newsletter", label: "Newsletter" },
+            { href: "/contact", label: "Contact" },
+          ]}
+          legalLinks={[
+            { href: "/privacy", label: "Privacy" },
+            { href: "/tos", label: "Terms" },
+          ]}
+          copyright={{
+            text: "© 2025 Techvaultlabs",
+            license: "All rights reserved",
+          }}
+        />
+      </div>
     </div>
   );
 }

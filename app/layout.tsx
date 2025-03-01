@@ -5,6 +5,7 @@ import Header from "@/components/Header";
 import ClientWrapper from "@/components/ClientWrapper";
 import { ThemeProvider } from "next-themes";
 import { FooterWrapper } from "@/components/FooterWrapper";
+import Head from "next/head";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -28,6 +29,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <Head>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      </Head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
