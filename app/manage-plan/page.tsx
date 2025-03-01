@@ -1,7 +1,7 @@
 "use client";
 
 import SchematicComponent from "@/components/schematic/SchematicComponent";
-import { useEffect, useState } from "react";
+import { useEffect, useState, JSX } from "react";
 
 function ManagePlan() {
   const [component, setComponent] = useState<JSX.Element | null>(null);
