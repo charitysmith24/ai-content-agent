@@ -11,7 +11,7 @@ interface TranscriptEntry {
 function Transcription({ videoId }: { videoId: string }) {
   console.log("videoId", videoId);
 
-  const [transcript, setTranscript] = useState<{
+  const [transcript] = useState<{
     transcript: TranscriptEntry[];
     cache: string;
   } | null>(null);
@@ -19,7 +19,6 @@ function Transcription({ videoId }: { videoId: string }) {
   const { featureUsageExceeded } = useSchematicEntitlement(
     FeatureFlag.TRANSCRIPTION
   );
-  setTranscript({ transcript: [], cache: "" });
 
   return (
     <div className="rounded-xl flex flex-col">

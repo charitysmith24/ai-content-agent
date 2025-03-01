@@ -1,12 +1,6 @@
-import dynamic from "next/dynamic";
+"use client";
 
-const SchematicEmbedComponent = dynamic(
-  () =>
-    import("@schematichq/schematic-components").then(
-      (mod) => mod.SchematicEmbed
-    ),
-  { ssr: false } // Ensures this only loads in the browser
-);
+import { SchematicEmbed as SchematicEmbedComponent } from "@schematichq/schematic-components";
 
 const SchematicEmbed = ({
   accessToken,
