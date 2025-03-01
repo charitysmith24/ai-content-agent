@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import { FeatureFlag } from "@/features/flags";
 import { useSchematicEntitlement } from "@schematichq/schematic-react";
 import { useState } from "react";
@@ -10,13 +9,17 @@ interface TranscriptEntry {
 }
 
 function Transcription({ videoId }: { videoId: string }) {
+  console.log("videoId", videoId);
+
   const [transcript, setTranscript] = useState<{
     transcript: TranscriptEntry[];
     cache: string;
   } | null>(null);
+
   const { featureUsageExceeded } = useSchematicEntitlement(
     FeatureFlag.TRANSCRIPTION
   );
+  setTranscript({ transcript: [], cache: "" });
 
   return (
     <div className="rounded-xl flex flex-col">
