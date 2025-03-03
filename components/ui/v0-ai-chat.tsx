@@ -63,7 +63,7 @@ export function VercelV0Chat() {
   const [value, setValue] = useState("");
   const { textareaRef, adjustHeight } = useAutoResizeTextarea({
     minHeight: 60,
-    maxHeight: 500,
+    maxHeight: 1000,
   });
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {

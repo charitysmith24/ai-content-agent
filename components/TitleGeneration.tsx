@@ -11,7 +11,7 @@ function TitleGeneration({ videoId }: { videoId: string }) {
   const { user } = useUser();
   const titles = []; // TODO: PUll from convex
 
-  console.log("user", user);
+  //console.log("user", user);
   console.log("videoId", videoId);
 
   const { value: isTitleGenerationEnabled } = useSchematicEntitlement(

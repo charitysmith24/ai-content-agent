@@ -15,6 +15,9 @@ function Usage({
   title: string;
 }) {
   const isPending = useSchematicIsPending();
+
+  console.log("FEATURE FLAG USED: ", featureFlag);
+
   const {
     featureAllocation,
     featureUsage,
@@ -76,6 +79,8 @@ function Usage({
 
   const progress = ((featureUsage || 0) / (featureAllocation || 1)) * 100;
 
+  console.log("PROGRESS: ", progress);
+
   const getProgressColor = (percent: number) => {
     if (percent >= 80) return "[&>*]:bg-red-600";
     if (percent >= 50) return "[&>*]:bg-yellow-500";
@@ -83,6 +88,7 @@ function Usage({
   };
 
   const progressColor = getProgressColor(progress);
+  console.log("PROGRESS COLOR: ", progressColor);
 
   return (
     <div className="bg-gradient-to-b from-white to-rose-50 dark:from-primary/0 dark:to-primary/10 rounded-2xl shadow-lg border border-primary/70 dark:border-primary/10 p-6">

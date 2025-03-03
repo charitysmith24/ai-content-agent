@@ -23,10 +23,7 @@ function Transcription({ videoId }: { videoId: string }) {
   return (
     <div className="rounded-xl flex flex-col">
       <div className="min-w-52">
-        <Usage
-          featureFlag={FeatureFlag.TITLE_GENERATION}
-          title="Transcription"
-        />
+        <Usage featureFlag={FeatureFlag.TRANSCRIPTION} title="Transcription" />
         {/* transcription */}
         {!featureUsageExceeded ? (
           <div className="flex flex-col gap-2 max-h-[250px] overflow-y-auto rounded-md p-4">
