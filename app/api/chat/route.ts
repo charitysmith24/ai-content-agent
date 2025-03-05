@@ -1,5 +1,6 @@
 import { getVideoDetails } from "@/actions/getVideoDetails";
 import fetchTranscript from "@/tools/fetchTranscript";
+import { generateImage } from "@/tools/generateImage";
 import { createAnthropic } from "@ai-sdk/anthropic";
 import { currentUser } from "@clerk/nextjs/server";
 import { streamText } from "ai";
@@ -46,6 +47,7 @@ export async function POST(req: Request) {
     ],
     tools: {
       fetchTranscript: fetchTranscript,
+      generateImage: generateImage(videoId, user.id),
     },
   });
 
