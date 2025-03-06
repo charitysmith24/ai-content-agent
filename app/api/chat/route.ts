@@ -8,7 +8,7 @@ import { generateImage } from "@/tools/generateImage";
 import { getVideoFormUrl } from "@/lib/getVideoFormUrl";
 import { createAnthropic } from "@ai-sdk/anthropic";
 import { currentUser } from "@clerk/nextjs/server";
-import generateTitle from "@/tools/generateTitle";
+import { generateTitle } from "@/tools/generateTitle";
 
 const anthropic = createAnthropic({
   // custom settings
@@ -52,7 +52,7 @@ export async function POST(req: Request) {
     tools: {
       fetchTranscript: fetchTranscript,
       generateImage: generateImage(videoId, user.id),
-      generateTitle: generateTitle,
+      generateTitle: generateTitle(videoId, user.id),
       getVideoDetails: tool({
         description: "Get the details of a YouTube video",
         parameters: z.object({
