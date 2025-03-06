@@ -16,6 +16,10 @@ const nextConfig: NextConfig = {
         hostname: "quixotic-gecko-448.convex.cloud",
         protocol: "https",
       },
+      {
+        hostname: "images.unsplash.com",
+        protocol: "https",
+      },
     ],
   },
 };

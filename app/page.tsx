@@ -1,8 +1,8 @@
 import AgentPulse from "@/components/AgentPulse";
 import Pricing from "@/components/Pricing";
+import Testimonial from "@/components/ui/Testimonial";
 import YoutubeVideoForm from "@/components/YoutubeVideoForm";
 import { Brain, ImageIcon, MessageSquare, Sparkles, Video } from "lucide-react";
-//import { HeroSectionBlock } from "@/components/HeroSectionBlock";
 
 const steps = [
   {
@@ -167,7 +167,14 @@ export default function Home() {
       </section>
 
       {/* PRICING SECTION */}
-      <Pricing />
+      <section className="py-32 bg-white dark:bg-black/90">
+        <Pricing />
+      </section>
+
+      {/* Testimonials Section */}
+      <section className=" bg-white dark:bg-black/90">
+        <Testimonial />
+      </section>
     </div>
   );
 }
