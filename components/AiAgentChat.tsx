@@ -196,7 +196,7 @@ function AiAgentChat({ videoId }: { videoId: string }) {
       {/* Chat Input */}
       <div className="border-t border-primary/10 bg-white dark:bg-black/0">
         <div className="space-x-3 py-4">
-          <form onSubmit={handleSubmit} className="flex gap-2">
+          <form onSubmit={handleSubmit} className="flex gap-2 mb-2.5">
             <input
               className="flex-1 px-4 py-2 text-gray-700 dark:text-gray-300 border border-primary/10 rounded-lg focus:outline-none focus:ring focus:ring-primary/50 dark:focus:ring-primary/50"
               value={input}
@@ -215,7 +215,7 @@ function AiAgentChat({ videoId }: { videoId: string }) {
                 status === "submitted" ||
                 !isVideoAnalysisEnabled
               }
-              className="px-4 py-2 bg-primary text-white text-sm rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-4 py-2 bg-primary text-white text-sm rounded-lg hover:bg-gray-200 hover:text-primary hover:border hover:border-primary transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {status === "streaming"
                 ? "AI is replying..."
@@ -226,7 +226,7 @@ function AiAgentChat({ videoId }: { videoId: string }) {
           </form>
           <div className="flex gap-2">
             <button
-              className="text-xs xl:text-sm w-full flex items-center justify-center gap-2 py-2 px-4 bg-gray-100 hover:bg-gray-200 rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="text-xs xl:text-sm text-white w-full flex items-center justify-center gap-2 py-2 px-4 bg-primary hover:bg-gray-200 hover:text-primary hover:border hover:border-primary rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               onClick={generateScript}
               type="button"
               disabled={!isScriptGenerationEnabled}
@@ -240,7 +240,7 @@ function AiAgentChat({ videoId }: { videoId: string }) {
             </button>
 
             <button
-              className="text-xs xl:text-sm w-full flex items-center justify-center gap-2 py-2 px-4 bg-gray-100 hover:bg-gray-200 rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="text-xs xl:text-sm text-white w-full flex items-center justify-center gap-2 py-2 px-4 bg-primary hover:bg-gray-200 hover:text-primary hover:border hover:border-primary rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               onClick={generateTitle}
               type="button"
               disabled={!isTitleGenerationEnabled}
@@ -250,12 +250,12 @@ function AiAgentChat({ videoId }: { videoId: string }) {
             </button>
 
             <button
-              className="text-xs xl:text-sm w-full flex items-center justify-center gap-2 py-2 px-4 bg-gray-100 hover:bg-gray-200 rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="text-xs xl:text-sm text-white w-full flex items-center justify-center gap-2 py-2 px-4 bg-primary hover:bg-gray-200 hover:text-primary hover:border hover:border-primary rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               onClick={generateImage}
               type="button"
               disabled={!isImageGenerationEnabled}
             >
-              <ImageIcon className="w-4 h-4" />
+              <ImageIcon className="w-4 h-4 hover:text-primary" />
               Generate Image
             </button>
           </div>
