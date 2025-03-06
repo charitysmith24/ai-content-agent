@@ -1,8 +1,8 @@
 import AgentPulse from "@/components/AgentPulse";
 import Pricing from "@/components/Pricing";
+import Testimonial from "@/components/ui/Testimonial";
 import YoutubeVideoForm from "@/components/YoutubeVideoForm";
 import { Brain, ImageIcon, MessageSquare, Sparkles, Video } from "lucide-react";
-//import { HeroSectionBlock } from "@/components/HeroSectionBlock";
 
 const steps = [
   {
@@ -136,7 +136,7 @@ export default function Home() {
         </div>
       </section>
       {/* How it works section*/}
-      <section className="py-32 bg-rose-700 dark:bg-black/10">
+      <section className="py-32 bg-rose-700 dark:bg-black/0">
         <div className="container mx-auto px-4 pb-12 max-w-5xl">
           <h2 className="text-3xl font-bold text-center mb-12 text-white">
             Meet Your AI Agent in 3 Simple Steps
@@ -167,7 +167,14 @@ export default function Home() {
       </section>
 
       {/* PRICING SECTION */}
-      <Pricing />
+      <section className="py-32 bg-white dark:bg-black/90">
+        <Pricing />
+      </section>
+
+      {/* Testimonials Section */}
+      <section className=" bg-white dark:bg-black/90">
+        <Testimonial />
+      </section>
     </div>
   );
 }
