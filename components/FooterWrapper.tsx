@@ -3,7 +3,7 @@ import { Footer } from "@/components/ui/footer";
 
 function FooterWrapper() {
   return (
-    <div className="bg-gradient-to-b from-white to-rose-50 dark:to-primary/10 dark:from-primary/0 px-4">
+    <div className="bg-gradient-to-b from-white via-rose-300 to-rose-700 dark:from-black/90 dark:via-black/50 dark:to-black/0 px-4 py-12">
       <div className="container w-full mx-auto">
         <Footer
           logo={<Video className="size-10 animate-pulse text-rose-700" />}

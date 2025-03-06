@@ -136,7 +136,7 @@ export default function Home() {
         </div>
       </section>
       {/* How it works section*/}
-      <section className="py-32 bg-rose-700 dark:bg-black/10">
+      <section className="py-32 bg-rose-700 dark:bg-black/0">
         <div className="container mx-auto px-4 pb-12 max-w-5xl">
           <h2 className="text-3xl font-bold text-center mb-12 text-white">
             Meet Your AI Agent in 3 Simple Steps

@@ -85,7 +85,7 @@ function classNames(...classes: string[]) {
 
 export default function Example() {
   return (
-    <div className="relative isolate bg-white pt-24 pb-32 sm:pt-32">
+    <div className="relative isolate bg-white dark:bg-primary/0 pt-24 pb-32 sm:pt-32">
       <div
         aria-hidden="true"
         className="absolute inset-x-0 top-1/2 -z-10 -translate-y-1/2 transform-gpu overflow-hidden opacity-30 blur-3xl"
