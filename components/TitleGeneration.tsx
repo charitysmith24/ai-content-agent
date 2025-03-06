@@ -1,17 +1,18 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 
 import { FeatureFlag } from "@/features/flags";
 import { useUser } from "@clerk/nextjs";
 import Usage from "./Usage";
 import { useSchematicEntitlement } from "@schematichq/schematic-react";
+import { useQuery } from "convex/react";
+import { api } from "@/convex/_generated/api";
 import { Copy } from "lucide-react";
+import { toast } from "sonner";
 
 function TitleGeneration({ videoId }: { videoId: string }) {
   const { user } = useUser();
-  const titles = []; // TODO: PUll from convex
+  const titles = useQuery(api.titles.list, { videoId, userId: user?.id ?? "" });
 
-  console.log("user", user);
   console.log("videoId", videoId);
 
   const { value: isTitleGenerationEnabled } = useSchematicEntitlement(
@@ -20,7 +21,7 @@ function TitleGeneration({ videoId }: { videoId: string }) {
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
-    // toast.success("Copied to clipboard");
+    toast.success("Copied to clipboard");
   };
 
   return (
@@ -34,7 +35,7 @@ function TitleGeneration({ videoId }: { videoId: string }) {
 
       {/* Titles Grid */}
       <div className="space-y-3 mt-4 max-h-[280px] overflow-y-auto">
-        {/* {titles?.map((title) => (
+        {titles?.map((title) => (
           <div
             key={title._id}
             className="group relative p-4 rounded-lg border border-gray-100 dark:border-primary/50 hover:border-primary/10 hover:bg-blue-50 transition-all duration-200"
@@ -52,7 +53,7 @@ function TitleGeneration({ videoId }: { videoId: string }) {
               </button>
             </div>
           </div>
-        ))} */}
+        ))}
       </div>
 
       {/* No titles yet */}

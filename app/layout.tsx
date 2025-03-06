@@ -6,6 +6,7 @@ import ClientWrapper from "@/components/ClientWrapper";
 import { ThemeProvider } from "next-themes";
 import { FooterWrapper } from "@/components/FooterWrapper";
 import Head from "next/head";
+import { Toaster } from "@/components/ui/sonner";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -44,6 +45,7 @@ export default function RootLayout({
           >
             <Header />
             <main>{children}</main>
+            <Toaster />
             {/* Footer Section */}
             <FooterWrapper />
           </ThemeProvider>
