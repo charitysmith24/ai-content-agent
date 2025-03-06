@@ -31,7 +31,8 @@ const tiers: Tier[] = [
     id: "tier-free",
     href: "/manage-plan",
     price: { monthly: "$0.00", annually: "$0.00" },
-    description: "Get started with AI-powered video insights—free forever!",
+    description:
+      "Everyone can start generating AI-powered video insights — free forever! All you need to do is sign up.",
     features: ["5 Video Analysis", "5 Transcriptions"],
     mostPopular: false,
   },
@@ -186,7 +187,7 @@ export default function Example() {
                     "mt-6 block rounded-md px-3 py-2 text-center text-sm font-semibold focus-visible:outline-2 focus-visible:outline-offset-2"
                   )}
                 >
-                  Buy plan
+                  {!tier.id.includes("free") ? "Buy Plan" : "Get started"}
                 </a>
                 <ul
                   role="list"

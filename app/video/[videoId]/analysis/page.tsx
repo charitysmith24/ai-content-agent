@@ -12,6 +12,7 @@ import { FeatureFlag } from "@/features/flags";
 import { useUser } from "@clerk/nextjs";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
 
 function AnalysisPage() {
   const params = useParams<{ videoId: string }>();
@@ -29,10 +30,10 @@ function AnalysisPage() {
       // Analyse the video (add video to db here)
       const response = await createOrGetVideo(videoId as string, user.id);
       if (!response.success) {
-        // toast.error("Error creating or getting video", {
-        //   description: response.error,
-        //   duration: 10000,
-        // });
+        toast.error("Error creating or getting video", {
+          description: response.error,
+          duration: 10000,
+        });
       } else {
         setVideo(response.data!);
       }
@@ -78,17 +79,10 @@ function AnalysisPage() {
               featureFlag={FeatureFlag.ANALYSE_VIDEO}
               title="Analyse Video"
             />
-
             {/* Video Transcription status */}
             {VideoTranscriptionStatus}
-
             <YoutubeVideoDetails videoId={videoId} />
           </div>
-          {/* Youtube video Details */}
-          {/* <div className="flex flex-col gap-4 border border-primary/70 dark:border-primary/50 p-2 rounded-xl">
-            <YoutubeVideoDetails videoId={videoId} />
-          </div> */}
-
           {/* Thumbnail Generation */}
           <div className="flex flex-col gap-4 border border-primary/70 dark:border-primary/50 p-2 rounded-xl">
             <ThumbnailGeneration videoId={videoId} />
@@ -105,9 +99,8 @@ function AnalysisPage() {
 
         {/* Right Side */}
         <div className="order-1 lg:order-2 lg:sticky lg:top-20 h-[500px] md:h-[calc(100vh-6rem)] px-6">
-          <AiAgentChat videoId={videoId} />
-
           {/* AI CHAT */}
+          <AiAgentChat videoId={videoId} />
         </div>
       </div>
     </div>

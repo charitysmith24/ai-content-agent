@@ -18,7 +18,7 @@ const steps = [
     icon: Brain,
   },
   {
-    title: "3. Receive Intelligence Reports",
+    title: "3. Get Intelligence Reports",
     description:
       "Get actionable insights, transcriptions, and recommendations to improve your video content.",
     icon: MessageSquare,
@@ -39,8 +39,8 @@ const features = [
     description:
       "Get accurate transcriptions of your videos. Perfect for creating subtitles, blog posts, or repurposing content.",
     icon: MessageSquare,
-    iconBg: "bg-pink-100",
-    iconColor: "text-pink-600",
+    iconBg: "bg-emerald-100",
+    iconColor: "text-emerald-600",
   },
   {
     title: "Thumbnail Generator",
@@ -63,8 +63,8 @@ const features = [
     description:
       "Get detailed, step-by-step instructions to recreate viral videos. Learn shooting techniques, camera angles, and editing tips from successful content.",
     icon: Video,
-    iconBg: "bg-amber-100",
-    iconColor: "text-amber-600",
+    iconBg: "bg-cyan-100",
+    iconColor: "text-cyan-600",
   },
   {
     title: "Discuss with Your AI Agent",
@@ -136,9 +136,9 @@ export default function Home() {
         </div>
       </section>
       {/* How it works section*/}
-      <section className="py-32 bg-white dark:bg-black/90">
+      <section className="py-32 bg-rose-700 dark:bg-black/10">
         <div className="container mx-auto px-4 pb-12 max-w-5xl">
-          <h2 className="text-3xl font-bold text-center mb-12">
+          <h2 className="text-3xl font-bold text-center mb-12 text-white">
             Meet Your AI Agent in 3 Simple Steps
           </h2>
           <div className="grid md:grid-cols-3 gap-8">
@@ -148,13 +148,15 @@ export default function Home() {
               return (
                 <div
                   key={index}
-                  className="bg-gradient-to-b from-white to-rose-50 dark:from-primary/0 dark:to-primary/0 p-6 rounded-xl border border-primary/20 hover:border-rose-600 transition-all duration-300"
+                  className="flex flex-col items-center text-center bg-gradient-to-b from-white to-rose-50 dark:from-primary/0 dark:to-primary/0 p-6 rounded-xl border border-primary/20 hover:border-rose-600 transition-all duration-300"
                 >
                   <div className="size-16 bg-gradient-to-r from-primary to-rose-600 rounded-full flex items-center justify-center mb-4 mx-auto">
                     <Icon className={`size-8 text-white`} />
                   </div>
-                  <h3 className="text-xl font-semibold mb-2">{step.title}</h3>
-                  <p className="text-gray-600 dark:text-white/80">
+                  <h3 className="prose prose-md text-xl font-semibold text-gray-800 dark:text-white/90 mb-2">
+                    {step.title}
+                  </h3>
+                  <p className="prose prose-sm text-gray-600 dark:text-white/80">
                     {step.description}
                   </p>
                 </div>

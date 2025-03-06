@@ -8,6 +8,7 @@ function ManagePlan() {
 
   useEffect(() => {
     SchematicComponent({ componentId: "cmpn_MN6Dc3HLi4E" }).then((result) => {
+      console.log("SchematicComponent Results: ", result);
       if (result instanceof Error) {
         console.error(result);
       } else {
