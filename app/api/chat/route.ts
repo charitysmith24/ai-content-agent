@@ -1,10 +1,14 @@
+import { NextResponse } from "next/server";
+import { tool } from "ai";
+import { z } from "zod";
+import { streamText } from "ai";
 import { getVideoDetails } from "@/actions/getVideoDetails";
 import fetchTranscript from "@/tools/fetchTranscript";
 import { generateImage } from "@/tools/generateImage";
+import { getVideoFormUrl } from "@/lib/getVideoFormUrl";
 import { createAnthropic } from "@ai-sdk/anthropic";
 import { currentUser } from "@clerk/nextjs/server";
-import { streamText } from "ai";
-import { NextResponse } from "next/server";
+import generateTitle from "@/tools/generateTitle";
 
 const anthropic = createAnthropic({
   // custom settings
@@ -48,6 +52,27 @@ export async function POST(req: Request) {
     tools: {
       fetchTranscript: fetchTranscript,
       generateImage: generateImage(videoId, user.id),
+      generateTitle: generateTitle,
+      getVideoDetails: tool({
+        description: "Get the details of a YouTube video",
+        parameters: z.object({
+          videoId: z.string().describe("The video ID to get the details for"),
+        }),
+        execute: async ({ videoId }: { videoId: string }) => {
+          const videoDetails = await getVideoDetails(videoId);
+          return { videoDetails };
+        },
+      }),
+      extractVideoId: tool({
+        description: "Extract the video ID from a URL",
+        parameters: z.object({
+          url: z.string().describe("The URL to extract the video ID from"),
+        }),
+        execute: async ({ url }) => {
+          const videoId = await getVideoFormUrl(url);
+          return { videoId };
+        },
+      }),
     },
   });
 

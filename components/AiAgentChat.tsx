@@ -80,7 +80,6 @@ function AiAgentChat({ videoId }: { videoId: string }) {
         break;
       case "ready":
         toast.dismiss(toastId);
-
         break;
     }
   }, [status]);
