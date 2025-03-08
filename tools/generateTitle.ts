@@ -4,7 +4,7 @@ import { client } from "@/lib/schematic";
 import { tool } from "ai";
 import { z } from "zod";
 
-export const generateTitle = (videoId: string, userId: string) =>
+const generateTitle = (userId: string) =>
   tool({
     description: "Generate a title for a YouTube video",
     parameters: z.object({
@@ -43,3 +43,5 @@ export const generateTitle = (videoId: string, userId: string) =>
       return { title };
     },
   });
+
+export default generateTitle;

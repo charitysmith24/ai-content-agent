@@ -49,7 +49,7 @@ function ThumbnailGeneration({ videoId }: { videoId: string }) {
             <p className="text-gray-400 dark:text-white">
               No Images generated yet.
             </p>
-            <p className="text-sm text-gray-400 dark:text-white/20 mt-1">
+            <p className="text-sm text-gray-400 dark:text-white/80 mt-1">
               Generate thumbnails to them appear here
             </p>
           </div>

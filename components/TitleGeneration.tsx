@@ -13,8 +13,6 @@ function TitleGeneration({ videoId }: { videoId: string }) {
   const { user } = useUser();
   const titles = useQuery(api.titles.list, { videoId, userId: user?.id ?? "" });
 
-  console.log("videoId", videoId);
-
   const { value: isTitleGenerationEnabled } = useSchematicEntitlement(
     FeatureFlag.TITLE_GENERATION
   );
@@ -38,7 +36,7 @@ function TitleGeneration({ videoId }: { videoId: string }) {
         {titles?.map((title) => (
           <div
             key={title._id}
-            className="group relative p-4 rounded-lg border border-gray-100 dark:border-primary/50 hover:border-primary/10 hover:bg-blue-50 transition-all duration-200"
+            className="group relative p-4 rounded-lg border border-primary/70 dark:border-primary/50 hover:border-primary/50 hover:bg-rose-50 hover:dark:bg-primary/70 transition-all duration-200"
           >
             <div className="flex items-start justify-between gap-4">
               <p className="text-sm text-gray-700 dark:text-white leading-relaxed">
@@ -49,7 +47,7 @@ function TitleGeneration({ videoId }: { videoId: string }) {
                 className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 p-1.5 hover:bg-primary/0 rounded-md"
                 title="Copy to clipboard"
               >
-                <Copy className="size-4 text-primary/70" />
+                <Copy className="size-4 text-primary/70 dark:text-white" />
               </button>
             </div>
           </div>
@@ -62,7 +60,7 @@ function TitleGeneration({ videoId }: { videoId: string }) {
           <p className="text-gray-400 dark:text-white">
             No Titles generated yet.
           </p>
-          <p className="text-sm text-gray-400 dark:text-white/20 mt-1">
+          <p className="text-sm text-gray-400 dark:text-white/80 mt-1">
             Generate titles to them appear here
           </p>
         </div>
