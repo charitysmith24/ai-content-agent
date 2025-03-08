@@ -74,7 +74,7 @@ function AnalysisPage() {
         {/* Left Side */}
         <div className="order-2 lg:order-1 flex flex-col gap-4 px-6 bg-white dark:bg-black/0 lg:border-r border-gray-100 dark:border-primary/50">
           {/* Analysis Section */}
-          <div className="flex flex-col gap-4 border border-primary/70 dark:border-primary/50 rounded-xl mb-4 px-2 py-4">
+          <div className="flex flex-col gap-4 border border-primary/70 dark:border-primary/50 rounded-xl mb-4 px-2 py-2">
             <Usage
               featureFlag={FeatureFlag.ANALYSE_VIDEO}
               title="Analyse Video"

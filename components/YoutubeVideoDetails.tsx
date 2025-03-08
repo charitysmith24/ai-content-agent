@@ -29,7 +29,7 @@ function YoutubeVideoDetails({ videoId }: { videoId: string }) {
 
   return (
     <div className="@container bg-white dark:bg-primary/0 rounded-xl">
-      <div className="flex flex-col gap-4 border border-primary/0 dark:border-primary/50 rounded-xl mb-4">
+      <div className="flex flex-col gap-4 border border-primary/0 dark:border-primary/50 rounded-xl mb-4 px-4 py-2">
         <div className="flex flex-col gap-8">
           {/* Video Thumbnail */}
           <div className="flex-shrink-0">
@@ -112,8 +112,10 @@ function YoutubeVideoDetails({ videoId }: { videoId: string }) {
               </div>
             </div>
             {/* Description */}
-            <div className="prose prose-sm lg:prose-lg text-gray-700 dark:text-white/80">
-              <p>{video.description}</p>
+            <div className="prose prose-sm lg:prose-base">
+              <p className="text-gray-700 dark:text-white/80 text-wrap">
+                {video.description}
+              </p>
             </div>
           </div>
         </div>

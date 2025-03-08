@@ -235,7 +235,7 @@ function AiAgentChat({ videoId }: { videoId: string }) {
               {isScriptGenerationEnabled ? (
                 <span>Generate Script</span>
               ) : (
-                <span>Upgrade to generate a script</span>
+                <span className="">Upgrade to generate a script</span>
               )}
             </button>
 
@@ -246,7 +246,11 @@ function AiAgentChat({ videoId }: { videoId: string }) {
               disabled={!isTitleGenerationEnabled}
             >
               <PenIcon className="w-4 h-4" />
-              Generate Title
+              {isTitleGenerationEnabled ? (
+                <span>Generate Title</span>
+              ) : (
+                <span className="">Upgrade to generate a title</span>
+              )}
             </button>
 
             <button
@@ -255,8 +259,12 @@ function AiAgentChat({ videoId }: { videoId: string }) {
               type="button"
               disabled={!isImageGenerationEnabled}
             >
-              <ImageIcon className="w-4 h-4 hover:text-primary" />
-              Generate Image
+              <ImageIcon className="w-4 h-4" />
+              {isImageGenerationEnabled ? (
+                <span>Generate Thumbnail</span>
+              ) : (
+                <span className="">Upgrade to generate a thumbnail</span>
+              )}
             </button>
           </div>
         </div>

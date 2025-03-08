@@ -18,22 +18,30 @@ export const createOrGetVideo = async (
   videoId: string,
   userId: string
 ): Promise<VideoResponse> => {
+  console.log("🎬 Starting video creation/retrieval process", { videoId, userId });
   const convex = getConvexClient();
   const user = await currentUser();
 
   if (!user) {
+    console.error("❌ Authentication error: User not found");
     return {
       success: false,
       error: "User not found",
     };
   }
 
+  console.log("🔒 User authenticated successfully", { userId: user.id });
   const featureCheck = await checkFeatureUsageLimit(
     user.id,
     featureFlagEvents[FeatureFlag.ANALYSE_VIDEO].event
   );
 
   if (!featureCheck.success) {
+    console.error("❌ Feature usage limit exceeded", {
+      userId: user.id,
+      feature: FeatureFlag.ANALYSE_VIDEO,
+      error: featureCheck.error
+    });
     return {
       success: false,
       error: featureCheck.error,
@@ -41,28 +49,28 @@ export const createOrGetVideo = async (
   }
 
   try {
+    console.log("🔍 Checking for existing video in database");
     const video = await convex.query(api.videos.getVideoById, {
       videoId,
       userId,
     });
 
     if (!video) {
-      // Analyse event
-      console.log(
-        `🔍 Analyse event for video ${videoId} - Token will be spent`
-      );
+      console.log("📝 No existing video found - creating new entry", { videoId });
+      console.log("🔍 Analyse event for video - Token will be spent");
 
       const newVideoId = await convex.mutation(api.videos.createVideoEntry, {
         videoId,
         userId,
       });
+      console.log("✅ New video entry created successfully", { newVideoId });
 
       const newVideo = await convex.query(api.videos.getVideoById, {
         videoId: newVideoId,
         userId,
       });
 
-      console.log("Tracking analyse video event...");
+      console.log("📊 Tracking analyse video event");
       await client.track({
         event: featureFlagEvents[FeatureFlag.ANALYSE_VIDEO].event,
         company: {
@@ -72,20 +80,26 @@ export const createOrGetVideo = async (
           id: userId,
         },
       });
+      console.log("✅ Analysis event tracked successfully");
 
       return {
         success: true,
         data: newVideo!,
       };
     } else {
-      console.log("Video exists - no token needs to be spent");
+      console.log("✅ Existing video found - no token needed", { videoId });
       return {
         success: true,
         data: video,
       };
     }
   } catch (error) {
-    console.error("Error creating or getting video:", error);
+    console.error("❌ Error in video creation/retrieval process:", {
+      videoId,
+      userId,
+      error: error instanceof Error ? error.message : "Unknown error",
+      stack: error instanceof Error ? error.stack : undefined
+    });
     return {
       success: false,
       error: "An unexpected error occurred. Please try again later.",
