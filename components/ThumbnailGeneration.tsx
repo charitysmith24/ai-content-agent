@@ -6,6 +6,14 @@ import { FeatureFlag } from "@/features/flags";
 import Image from "next/image";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 
 function ThumbnailGeneration({ videoId }: { videoId: string }) {
   const { user } = useUser();
@@ -31,14 +39,33 @@ function ThumbnailGeneration({ videoId }: { videoId: string }) {
                 key={image._id}
                 className="flex-none w-[200px] h-[110px] rounded-lg overflow-x-auto"
               >
-                <Image
-                  loading="lazy"
-                  src={image.url}
-                  alt={`Generated Image`}
-                  width={200}
-                  height={200}
-                  className="object-cover"
-                />
+                <Dialog>
+                  <DialogTrigger>
+                    <Image
+                      loading="lazy"
+                      src={image.url}
+                      alt={`Generated Image`}
+                      width={200}
+                      height={200}
+                      className="object-cover"
+                    />
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Your AI Generated Thumbnail</DialogTitle>
+                      <DialogDescription>
+                        <Image
+                          loading="lazy"
+                          src={image.url}
+                          alt={`Generated Image`}
+                          width={500}
+                          height={500}
+                          className="object-cover"
+                        />
+                      </DialogDescription>
+                    </DialogHeader>
+                  </DialogContent>
+                </Dialog>
               </div>
             )
         )}

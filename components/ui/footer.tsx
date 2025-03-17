@@ -83,7 +83,7 @@ export function Footer({
                 <li key={i} className="my-1 mx-3 shrink-0">
                   <a
                     href={link.href}
-                    className="text-sm text-white/80 underline-offset-4 hover:underline"
+                    className="text-sm text-white/80 underline-offset-4 hover:underline hover:text-rose-900 dark:hover:text-rose-700"
                   >
                     {link.label}
                   </a>

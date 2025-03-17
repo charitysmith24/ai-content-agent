@@ -25,7 +25,7 @@ function YoutubeVideoDetails({ videoId }: { videoId: string }) {
       </div>
     );
 
-  console.log("Video Details", video);
+  // console.log("Video Details", video);
 
   return (
     <div className="@container bg-white dark:bg-primary/0 rounded-xl">
@@ -113,7 +113,9 @@ function YoutubeVideoDetails({ videoId }: { videoId: string }) {
             </div>
             {/* Description */}
             <div className="prose prose-sm lg:prose-base">
-              <p className="text-gray-700 dark:text-white/80 text-wrap">
+              <p
+                className={`text-gray-700 dark:text-white/80 text-wrap ${video.description.length > 200 ? "line-clamp-5" : ""}`}
+              >
                 {video.description}
               </p>
             </div>

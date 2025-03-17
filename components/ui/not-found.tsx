@@ -28,13 +28,14 @@ export function NotFound({
       <p className="mt-6 text-pretty text-lg font-medium text-muted-foreground sm:text-xl/8">
         {description}
       </p>
-      {/* <div className="mt-10 flex flex-col sm:flex-row gap-y-3 sm:space-x-2 mx-auto sm:max-w-sm">
-        <div className="relative w-full">
-          <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input placeholder="Search" className="pl-8" />
-        </div>
-        <Button variant="outline">Search</Button>
-      </div> */}
+      <div className="mt-4 text-sm text-muted-foreground">
+        <p>Example URLs Supported:</p>
+        <ul className="list-disc list-inside">
+          <li>YouTube standard: https://www.youtube.com/watch?v=dQw4w9WgXcQ</li>
+          <li>YouTube short: https://youtube.com/shorts/abcd1234</li>
+          <li>YouTube shortened URL: https://youtu.be/dQw4w9WgXcQ</li>
+        </ul>
+      </div>
       <div className="mt-10 flex flex-col sm:flex-row sm:items-center sm:justify-center gap-y-3 gap-x-6">
         {/* <Button variant="secondary" asChild className="group">
           <a href="#">
