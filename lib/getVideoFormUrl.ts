@@ -8,5 +8,11 @@ export function getVideoFormUrl(url: string): string | null {
   } else if (url.split("v=").length > 1) {
     videoId = url.split("v=")[1]?.split("&")[0] || null;
   }
+  // WIP: Extract TikTok video ID
+  /*  else if (url.includes("tiktok.com/")) {
+    const match = url.match(/\/video\/(\d+)/);
+    videoId = match ? match[1] : null;
+    console.log("TikTok videoId is >>>", videoId);
+  } */
   return videoId;
 }

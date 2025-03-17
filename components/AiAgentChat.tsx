@@ -157,7 +157,10 @@ function AiAgentChat({ videoId }: { videoId: string }) {
                   <div className="space-y-3">
                     {m.parts.map((part, i) =>
                       part.type === "text" ? (
-                        <div key={i} className="prose dark:prose-dark prose-sm">
+                        <div
+                          key={i}
+                          className="prose dark:prose-dark prose-sm max-w-none"
+                        >
                           <ReactMarkdown>{m.content}</ReactMarkdown>
                         </div>
                       ) : part.type === "tool-invocation" ? (

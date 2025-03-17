@@ -50,19 +50,6 @@ export async function POST(req: Request) {
       ...messages,
     ],
     tools: {
-      fetchTranscript: fetchTranscript,
-      generateImage: generateImage(videoId, user.id),
-      generateTitle: generateTitle(user.id),
-      getVideoDetails: tool({
-        description: "Get the details of a YouTube video",
-        parameters: z.object({
-          videoId: z.string().describe("The video ID to get the details for"),
-        }),
-        execute: async ({ videoId }: { videoId: string }) => {
-          const videoDetails = await getVideoDetails(videoId);
-          return { videoDetails };
-        },
-      }),
       extractVideoId: tool({
         description: "Extract the video ID from a URL",
         parameters: z.object({
@@ -73,6 +60,19 @@ export async function POST(req: Request) {
           return { videoId };
         },
       }),
+      getVideoDetails: tool({
+        description: "Get the details of a YouTube video",
+        parameters: z.object({
+          videoId: z.string().describe("The video ID to get the details for"),
+        }),
+        execute: async ({ videoId }: { videoId: string }) => {
+          const videoDetails = await getVideoDetails(videoId);
+          return { videoDetails };
+        },
+      }),
+      fetchTranscript: fetchTranscript,
+      generateImage: generateImage(videoId, user.id),
+      generateTitle: generateTitle(user.id),
     },
   });
 
