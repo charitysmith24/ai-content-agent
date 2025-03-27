@@ -35,7 +35,9 @@ export async function POST(req: Request) {
   If an error occurs, explain it to the user and them to try again later. If the error suggest the user upgrade, explain that they must
   upgrade to use this feature, tell them to go to 'Manage Plan" in the header and upgrade. If any tool is used, analyse the response and if it contains
   a cache, explain that the transcript is cached because they previously transcribed the video saving the user a token - use words like database
-  instead of cache to make it more easy to understand. Format for notion.`;
+  instead of cache to make it more easy to understand. Format for notion.
+  
+  IMPORTANT: When using tools, DO NOT regenerate your entire response. Only proceed with your reasoning from where you left off. Do not repeat what you've already said.`;
 
   const result = streamText({
     model,
@@ -44,7 +46,11 @@ export async function POST(req: Request) {
         role: "system",
         content: systemMessage,
         providerOptions: {
-          anthropic: { cacheControl: { type: "ephemeral" } },
+          anthropic: {
+            cacheControl: { type: "ephemeral" },
+            additionalInstructions:
+              "After using tools, continue from where you left off. Don't restart your entire response.",
+          },
         },
       },
       ...messages,
@@ -78,5 +84,7 @@ export async function POST(req: Request) {
 
   console.log({ result });
 
-  return result.toDataStreamResponse();
+  return result.toDataStreamResponse({
+    sendReasoning: false,
+  });
 }

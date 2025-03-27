@@ -25,6 +25,67 @@ const formatToolInvocation = (part: ToolPart) => {
   return `🔧 Tool Used: ${part.toolInvocation.toolName}`;
 };
 
+// Function to handle assistant messages and clean up duplications
+const processAssistantMessage = (message: Message) => {
+  // If the message has no parts or content, return empty
+  if (!message.content || !message.parts) return { content: "", toolParts: [] };
+
+  // Extract tool parts separately
+  const toolParts = message.parts.filter(
+    (part) => part.type === "tool-invocation"
+  ) as ToolPart[];
+
+  // Process content to remove duplications
+  let content = message.content;
+
+  // Handle different types of AI responses, not just summaries
+
+  // First, check if this is a summary by looking for "Summary of" pattern
+  const summaryPattern = /.*?(Summary of[\s\S]*?)(?=🔧 Tool Used:|$)/;
+  const summaryMatch = content.match(summaryPattern);
+
+  if (summaryMatch && summaryMatch[1]) {
+    // If we found a summary pattern, use just the final summary
+    content = summaryMatch[1].trim();
+  } else {
+    // For other types of content, look for repeated intro phrases like "I'd be happy to"
+    // and keep only the final most complete response
+    const commonIntroPattern =
+      /(I'd be happy to|Let me|I'll|I will|Here's|Based on the)[\s\S]*?(?=🔧 Tool Used:|$)/g;
+    const matches = Array.from(content.matchAll(commonIntroPattern));
+
+    if (matches.length > 1) {
+      // If we found multiple intro phrases, use the last complete response
+      // This assumes the final response is the most complete one
+      content = matches[matches.length - 1][0].trim();
+    }
+
+    // Keep any markdown formatting in the response
+    if (
+      content.includes("#") ||
+      content.includes("*") ||
+      content.includes("```")
+    ) {
+      // If content has markdown, ensure we're not cutting off any formatting
+      // Try to keep complete blocks, paragraphs, lists, etc.
+      const lines = content.split("\n");
+      if (lines.length > 2) {
+        // Make sure we're not cutting off an opening code block, list, etc.
+        const firstLine = 0;
+        const lastLine = lines.length - 1;
+
+        // Ensure we don't cut off markdown blocks
+        const formattedContent = lines
+          .slice(firstLine, lastLine + 1)
+          .join("\n");
+        content = formattedContent;
+      }
+    }
+  }
+
+  return { content, toolParts };
+};
+
 function AiAgentChat({ videoId }: { videoId: string }) {
   // Scrolling to Bottom Logic
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -152,37 +213,48 @@ function AiAgentChat({ videoId }: { videoId: string }) {
                     : "bg-gray-100 dark:bg-gray-200"
                 }`}
               >
-                {m.parts && m.role === "assistant" ? (
-                  // AI message
+                {m.role === "assistant" ? (
+                  // AI message - processed to avoid duplication
                   <div className="space-y-3">
-                    {m.parts.map((part, i) =>
-                      part.type === "text" ? (
-                        <div
-                          key={i}
-                          className="prose dark:prose-dark prose-sm max-w-none"
-                        >
-                          <ReactMarkdown>{m.content}</ReactMarkdown>
-                        </div>
-                      ) : part.type === "tool-invocation" ? (
-                        <div
-                          key={i}
-                          className="bg-white/50 rounded-lg p-2 space-y-2 text-gray-700"
-                        >
-                          <div className="font-medium text-sm">
-                            {formatToolInvocation(part as ToolPart)}
-                          </div>
-                          {(part as ToolPart).toolInvocation.result && (
-                            <pre className="text-sm bg-white dark:bg-black/10 rounded p-2 overflow-auto max-h-40">
-                              {JSON.stringify(
-                                (part as ToolPart).toolInvocation.result,
-                                null,
-                                2
-                              )}
-                            </pre>
+                    {(() => {
+                      const { content, toolParts } = processAssistantMessage(m);
+
+                      return (
+                        <>
+                          {/* Display the main processed content */}
+                          {content && (
+                            <div className="prose dark:prose-dark prose-sm max-w-none">
+                              <ReactMarkdown>{content}</ReactMarkdown>
+                            </div>
                           )}
-                        </div>
-                      ) : null
-                    )}
+
+                          {/* Display tool parts separately */}
+                          {toolParts.length > 0 && (
+                            <div className="space-y-2 mt-3">
+                              {toolParts.map((part, i) => (
+                                <div
+                                  key={i}
+                                  className="bg-white/50 rounded-lg p-2 space-y-2 text-gray-700"
+                                >
+                                  <div className="font-medium text-sm">
+                                    {formatToolInvocation(part)}
+                                  </div>
+                                  {part.toolInvocation.result && (
+                                    <pre className="text-sm bg-white dark:bg-black/10 rounded p-2 overflow-auto max-h-40">
+                                      {JSON.stringify(
+                                        part.toolInvocation.result,
+                                        null,
+                                        2
+                                      )}
+                                    </pre>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </>
+                      );
+                    })()}
                   </div>
                 ) : (
                   // User message
