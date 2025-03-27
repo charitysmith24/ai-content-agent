@@ -6,8 +6,8 @@ import { Button } from "@headlessui/react";
 import { useSchematicFlag } from "@schematichq/schematic-react";
 import { BotIcon, ImageIcon, LetterText, PenIcon } from "lucide-react";
 import { useEffect, useRef } from "react";
-import ReactMarkdown from "react-markdown";
 import { toast } from "sonner";
+import { SecureContent } from "@/lib/secureContentRenderer";
 
 interface ToolInvocation {
   toolCallId: string;
@@ -23,6 +23,31 @@ interface ToolPart {
 const formatToolInvocation = (part: ToolPart) => {
   if (!part.toolInvocation) return "Unknown tool";
   return `🔧 Tool Used: ${part.toolInvocation.toolName}`;
+};
+
+/**
+ * Processes assistant messages to clean up duplicates and preserve markdown formatting
+ */
+const processAssistantMessage = (content: string): string => {
+  if (!content) return "";
+
+  // Extract the main content without duplications
+  // Looking for the most detailed and complete version
+  if (content.includes("Summary of")) {
+    // For summary-style responses, find the full summary section
+    const summaryMatch = content.match(/Summary of[^]+/);
+    if (summaryMatch && summaryMatch[0]) {
+      return summaryMatch[0];
+    }
+  }
+
+  // Strip common repetitive intro phrases to avoid duplication
+  const cleanContent = content.replace(
+    /^(I'd be happy to|Let me|Here's|I'll|Certainly|I can|Sure|Okay|Now,|I have|I will|Based on|Looking at|Analyzing|Inspecting)/i,
+    ""
+  );
+
+  return cleanContent;
 };
 
 function AiAgentChat({ videoId }: { videoId: string }) {
@@ -161,7 +186,11 @@ function AiAgentChat({ videoId }: { videoId: string }) {
                           key={i}
                           className="prose dark:prose-dark prose-sm max-w-none"
                         >
-                          <ReactMarkdown>{m.content}</ReactMarkdown>
+                          {/* Use SecureContent for rendering AI-generated content */}
+                          <SecureContent
+                            content={processAssistantMessage(m.content)}
+                            allowMarkdown={true}
+                          />
                         </div>
                       ) : part.type === "tool-invocation" ? (
                         <div
@@ -185,9 +214,9 @@ function AiAgentChat({ videoId }: { videoId: string }) {
                     )}
                   </div>
                 ) : (
-                  // User message
+                  // User message (no need for sanitization as it's user-generated)
                   <div className="prose dark:prose-dark prose-sm text-gray-500 dark:text-gray-200">
-                    <ReactMarkdown>{m.content}</ReactMarkdown>
+                    <SecureContent content={m.content} />
                   </div>
                 )}
               </div>
@@ -196,6 +225,7 @@ function AiAgentChat({ videoId }: { videoId: string }) {
           <div ref={bottomRef} />
         </div>
       </div>
+
       {/* Chat Input */}
       <div className="border-t border-primary/10 bg-white dark:bg-black/0">
         <div className="space-x-3 py-4">
