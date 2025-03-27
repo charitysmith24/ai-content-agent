@@ -1,6 +1,55 @@
+"use client";
+
 import { CalendarDays, Hand } from "lucide-react";
+import { FormEvent, useState } from "react";
 
 export default function Newsletter() {
+  const [email, setEmail] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState<{
+    text: string;
+    error: boolean;
+  } | null>(null);
+
+  const handleSubscribe = async (e: FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setMessage(null);
+
+    try {
+      const response = await fetch("/api/newsletter", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setMessage({
+          text: data.error || "Something went wrong. Please try again.",
+          error: true,
+        });
+      } else {
+        setMessage({
+          text: data.message || "Successfully subscribed!",
+          error: false,
+        });
+        setEmail("");
+      }
+    } catch (err: unknown) {
+      console.error("Newsletter subscription error:", err);
+      setMessage({
+        text: "An error occurred. Please try again later.",
+        error: true,
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="relative isolate overflow-hidden bg-gray-900 py-16 sm:py-24 lg:py-32 min-h-screen">
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
@@ -15,26 +64,43 @@ export default function Newsletter() {
               their content. Get expert insights, video growth strategies, and
               early access to new AI tools—delivered straight to your inbox!
             </p>
-            <div className="mt-6 flex max-w-md gap-x-4">
-              <label htmlFor="email-address" className="sr-only">
-                Email address
-              </label>
-              <input
-                id="email-address"
-                name="email"
-                type="email"
-                required
-                placeholder="Enter your email"
-                autoComplete="email"
-                className="min-w-0 flex-auto rounded-md bg-white/5 px-3.5 py-2 text-base text-white outline-1 -outline-offset-1 outline-white/10 placeholder:text-gray-500 focus:outline-2 focus:-outline-offset-2 focus:outline-rose-700 sm:text-sm/6"
-              />
-              <button
-                type="submit"
-                className="flex-none rounded-md bg-rose-700 px-3.5 py-2.5 text-sm font-semibold text-white shadow-xs hover:bg-rose-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rose-700"
-              >
-                Subscribe
-              </button>
-            </div>
+            <form
+              onSubmit={handleSubscribe}
+              className="mt-6 flex flex-col gap-4"
+            >
+              <div className="flex max-w-md gap-x-4">
+                <label htmlFor="email-address" className="sr-only">
+                  Email address
+                </label>
+                <input
+                  id="email-address"
+                  name="email"
+                  type="email"
+                  required
+                  placeholder="Enter your email"
+                  autoComplete="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="min-w-0 flex-auto rounded-md bg-white/5 px-3.5 py-2 text-base text-white outline-1 -outline-offset-1 outline-white/10 placeholder:text-gray-500 focus:outline-2 focus:-outline-offset-2 focus:outline-rose-700 sm:text-sm/6"
+                />
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="flex-none rounded-md bg-rose-700 px-3.5 py-2.5 text-sm font-semibold text-white shadow-xs hover:bg-rose-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rose-700 disabled:bg-rose-800 disabled:cursor-not-allowed"
+                >
+                  {loading ? "Subscribing..." : "Subscribe"}
+                </button>
+              </div>
+              {message && (
+                <div
+                  className={`text-sm ${
+                    message.error ? "text-red-400" : "text-green-400"
+                  }`}
+                >
+                  {message.text}
+                </div>
+              )}
+            </form>
           </div>
           <dl className="grid grid-cols-1 gap-x-8 gap-y-10 sm:grid-cols-2 lg:pt-2">
             <div className="flex flex-col items-start">
