@@ -1,4 +1,26 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# AI Content Agent Documentation
+
+Welcome to the AI Content Agent documentation. This directory contains comprehensive documentation for the AI-powered YouTube video analysis and content generation application.
+
+## Documentation Structure
+
+### SDLC Documents
+- [01-Project-Overview.md](./01-Project-Overview.md) - High-level project description and objectives
+- [02-Requirements-Specification.md](./02-Requirements-Specification.md) - Functional and non-functional requirements
+- [03-System-Architecture.md](./03-System-Architecture.md) - Technical architecture and design patterns
+- [04-Database-Design.md](./04-Database-Design.md) - Data models and schema documentation
+- [05-API-Documentation.md](./05-API-Documentation.md) - API endpoints and integration details
+- [06-Component-Documentation.md](./06-Component-Documentation.md) - Frontend component architecture
+- [07-Security-Documentation.md](./07-Security-Documentation.md) - Security measures and authentication
+- [08-Deployment-Guide.md](./08-Deployment-Guide.md) - Setup and deployment instructions
+- [09-Testing-Strategy.md](./09-Testing-Strategy.md) - Testing approach and guidelines
+- [10-Maintenance-Guide.md](./10-Maintenance-Guide.md) - Ongoing maintenance and updates
+
+## Quick Start
+For a quick overview, start with the [Project Overview](./01-Project-Overview.md) and [System Architecture](./03-System-Architecture.md) documents.
+
+## Contributing
+When updating this documentation, please maintain the existing structure and follow the established format patterns.
 
 ## Getting Started
 

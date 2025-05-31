@@ -171,7 +171,7 @@ function AiAgentChat({ videoId }: { videoId: string }) {
               className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}
             >
               <div
-                className={`max-w-[85%] rounded-2xl px-4 py-3 ${
+                className={`max-w-[85%] lg:max-w-[95%] rounded-2xl px-4 py-3 ${
                   m.role === "user"
                     ? "bg-primary/10 dark:bg-primary/70"
                     : "bg-gray-100 dark:bg-gray-200"
