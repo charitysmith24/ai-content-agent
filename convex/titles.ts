@@ -16,6 +16,24 @@ export const list = query({
   },
 });
 
+export const getLatestTitle = query({
+  args: {
+    videoId: v.string(),
+    userId: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const latestTitle = await ctx.db
+      .query("titles")
+      .withIndex("by_user_and_video", (q) =>
+        q.eq("userId", args.userId).eq("videoId", args.videoId)
+      )
+      .order("desc") // Get most recent
+      .first();
+    
+    return latestTitle?.title || null;
+  },
+});
+
 export const generate = mutation({
   args: {
     videoId: v.string(),
