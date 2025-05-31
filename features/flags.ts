@@ -20,6 +20,6 @@ export const featureFlagEvents: Record<FeatureFlag, { event: string }> = {
     event: "generate-title",
   },
   [FeatureFlag.SCRIPT_GENERATION]: {
-    event: "",
+    event: "generate-script",
   },
 };

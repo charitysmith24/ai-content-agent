@@ -5,11 +5,13 @@ import { streamText } from "ai";
 import { getVideoDetails } from "@/actions/getVideoDetails";
 import fetchTranscript from "@/tools/fetchTranscript";
 import { generateImage } from "@/tools/generateImage";
+import generateScript from "@/tools/generateScript";
 import { getVideoFormUrl } from "@/lib/getVideoFormUrl";
 import { createAnthropic } from "@ai-sdk/anthropic";
 import { currentUser } from "@clerk/nextjs/server";
 import generateTitle from "@/tools/generateTitle";
 import arcjet, { shield, fixedWindow } from "@arcjet/next";
+
 
 const anthropic = createAnthropic({
   // custom settings
@@ -112,6 +114,7 @@ export async function POST(req: Request) {
       fetchTranscript: fetchTranscript,
       generateImage: generateImage(videoId, user.id),
       generateTitle: generateTitle(user.id),
+      generateScript: generateScript(user.id),
     },
   });
 

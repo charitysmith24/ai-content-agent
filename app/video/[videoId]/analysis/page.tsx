@@ -2,6 +2,7 @@
 
 import { createOrGetVideo } from "@/actions/createOrGetVideo";
 import AiAgentChat from "@/components/AiAgentChat";
+import ScriptGeneration from "@/components/ScriptGeneration";
 import ThumbnailGeneration from "@/components/ThumbnailGeneration";
 import TitleGeneration from "@/components/TitleGeneration";
 import Transcription from "@/components/Transcription";
@@ -90,6 +91,10 @@ function AnalysisPage() {
           {/* Title Generation*/}
           <div className="flex flex-col gap-4 border border-primary/70 dark:border-primary/50 p-2 rounded-xl">
             <TitleGeneration videoId={videoId} />
+          </div>
+          {/* Script Generation */}
+          <div className="flex flex-col gap-4 border border-primary/70 dark:border-primary/50 p-2 rounded-xl">
+            <ScriptGeneration videoId={videoId} />
           </div>
           {/* Transcription */}
           <div className="flex flex-col gap-4 border border-primary/70 dark:border-primary/50 p-2 rounded-xl">

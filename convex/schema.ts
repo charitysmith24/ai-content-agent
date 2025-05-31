@@ -41,4 +41,40 @@ export default defineSchema({
     .index("by_video_id", ["videoId"])
     .index("by_user_id", ["userId"])
     .index("by_user_and_video", ["userId", "videoId"]),
+
+  scripts: defineTable({
+    videoId: v.string(),
+    userId: v.string(),
+    script: v.string(),
+    
+    // Title Integration
+    scriptTitle: v.string(),                    // Human-readable script name
+    videoTitle: v.optional(v.string()),         // Original video title
+    generatedTitle: v.optional(v.string()),     // AI-generated title (if exists)
+    titleSource: v.union(                       // Where title came from
+      v.literal("original_video"),
+      v.literal("ai_generated"), 
+      v.literal("user_defined"),
+      v.literal("auto_generated")
+    ),
+    
+    // Enhanced Metadata
+    scriptType: v.optional(v.union(
+      v.literal("tutorial"),
+      v.literal("marketing"),
+      v.literal("entertainment"),
+      v.literal("educational"),
+      v.literal("general")
+    )),
+    
+    // Timestamps
+    createdAt: v.number(),
+    updatedAt: v.optional(v.number()),
+  })
+    .index("by_video_id", ["videoId"])
+    .index("by_user_id", ["userId"])
+    .index("by_user_and_video", ["userId", "videoId"])
+    .index("by_title_source", ["titleSource"])
+    .index("by_script_type", ["scriptType"])
+    .index("by_created_at", ["createdAt"]),
 });
