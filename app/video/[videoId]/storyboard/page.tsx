@@ -9,19 +9,17 @@ import { Doc } from "@/convex/_generated/dataModel";
 import { FeatureFlag } from "@/features/flags";
 import Usage from "@/components/Usage";
 import VideoNavigation from "@/components/VideoNavigation";
-import YoutubeVideoDetails from "@/components/YoutubeVideoDetails";
 import ScriptSelection from "@/components/storyboard/ScriptSelection";
 import StoryboardScenes from "@/components/storyboard/StoryboardScenes";
 import SceneDetails from "@/components/storyboard/SceneDetails";
 import VoiceoverPanel from "@/components/storyboard/VoiceoverPanel";
-import { Id } from "@/convex/_generated/dataModel";
 
 function StoryboardPage() {
   const params = useParams<{ videoId: string }>();
   const { videoId } = params;
 
   const { user } = useUser();
-  const [video, setVideo] = useState<Doc<"videos"> | null | undefined>(
+  const [_video, setVideo] = useState<Doc<"videos"> | null | undefined>(
     undefined
   );
   const [selectedScriptId, setSelectedScriptId] = useState<string | null>(null);

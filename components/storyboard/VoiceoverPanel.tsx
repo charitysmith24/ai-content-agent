@@ -25,8 +25,8 @@ interface VoiceoverPanelProps {
   videoId: string;
 }
 
-// Define types for our data
-interface Scene {
+// Define type for Scene but don't use it directly
+type Scene = {
   _id: Id<"storyboard_scenes">;
   scriptId: Id<"scripts">;
   userId: string;
@@ -42,9 +42,10 @@ interface Scene {
   duration?: number;
   notes?: string;
   createdAt: number;
-}
+};
 
-interface Voiceover {
+// Define type for Voiceover but don't use it directly
+type Voiceover = {
   _id: Id<"voiceovers">;
   scriptId: Id<"scripts">;
   sceneId?: Id<"storyboard_scenes">;
@@ -56,7 +57,7 @@ interface Voiceover {
   duration?: number;
   text: string;
   createdAt: number;
-}
+};
 
 const MOCK_VOICES = [
   { id: "adam", name: "Adam (Male)", gender: "male" },

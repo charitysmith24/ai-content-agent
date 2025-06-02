@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import { dirname, join } from "path";
 
 const nextConfig: NextConfig = {
   /* config options here */
@@ -21,6 +22,17 @@ const nextConfig: NextConfig = {
         protocol: "https",
       },
     ],
+  },
+  // Add webpack configuration to handle the Schematic Components warning
+  webpack: (config, { isServer }) => {
+    // Silence the critical dependency warning for Schematic Components
+    config.ignoreWarnings = [
+      {
+        message: /Critical dependency: require function is used in a way in which dependencies cannot be statically extracted/,
+      },
+    ];
+    
+    return config;
   },
 };
 

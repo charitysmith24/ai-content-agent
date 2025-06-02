@@ -16,7 +16,6 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
   DialogFooter,
 } from "@/components/ui/dialog";
 import {
@@ -56,8 +55,8 @@ interface SceneDetailsProps {
   videoId: string;
 }
 
-// Define a type for our scene data
-interface Scene {
+// Define a type for our scene data but not use it directly in the component
+type Scene = {
   _id: Id<"storyboard_scenes">;
   scriptId: Id<"scripts">;
   userId: string;
@@ -123,7 +122,7 @@ function SceneDetails({ sceneId, scriptId, videoId }: SceneDetailsProps) {
     defaultValues: {
       sceneName: scene?.sceneName || "",
       sceneContent: scene?.sceneContent || "",
-      contentType: (scene?.contentType as any) || "action",
+      contentType: (scene?.contentType as "intro" | "action" | "dialogue" | "transition" | "outro" | "other") || "action",
       emotion: scene?.emotion || "",
       notes: scene?.notes || "",
     },
@@ -261,7 +260,7 @@ function SceneDetails({ sceneId, scriptId, videoId }: SceneDetailsProps) {
             <div className="text-center p-4">
               <ImageIcon className="h-8 w-8 mx-auto text-gray-400 mb-2" />
               <p className="text-sm text-gray-500">No image generated yet</p>
-              <p className="text-xs text-gray-400 mt-1">Click "Generate Image" to create one</p>
+              <p className="text-xs text-gray-400 mt-1">Click &quot;Generate Image&quot; to create one</p>
             </div>
           )}
         </div>

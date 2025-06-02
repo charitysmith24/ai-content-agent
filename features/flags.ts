@@ -26,12 +26,12 @@ export const featureFlagEvents: Record<FeatureFlag, { event: string }> = {
     event: "generate-script",
   },
   [FeatureFlag.STORYBOARD_WORKSPACE]: {
-    event: "storyboard-workspace",
+    event: "workspace-enabled",
   },
   [FeatureFlag.SCENE_IMAGE_GENERATION]: {
-    event: "generate-scene-image",
+    event: "scene-image-generation",
   },
   [FeatureFlag.VOICEOVER_GENERATION]: {
-    event: "generate-voiceover",
+    event: "voiceover-generation",
   },
 };

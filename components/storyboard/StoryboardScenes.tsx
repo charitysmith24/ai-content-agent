@@ -73,7 +73,7 @@ function StoryboardScenes({ scriptId, selectedSceneId, onSelectScene }: Storyboa
     try {
       setIsGenerating(true);
       
-      const result = await parseScriptIntoScenes({
+      await parseScriptIntoScenes({
         scriptId: scriptId as Id<"scripts">,
         userId: user.id,
         videoId: scriptDetails.videoId,
