@@ -64,7 +64,7 @@ function StoryboardPage() {
           <div className="shrink-0">
             <Usage
               featureFlag={FeatureFlag.SCENE_IMAGE_GENERATION}
-              title="Scene Images"
+              title="Scene Image Generation"
             />
           </div>
         </div>
