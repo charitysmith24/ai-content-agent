@@ -4,6 +4,9 @@ export enum FeatureFlag {
   ANALYSE_VIDEO = "analyze-video",
   TITLE_GENERATION = "title-generations",
   SCRIPT_GENERATION = "script-generation",
+  STORYBOARD_WORKSPACE = "storyboard-workspace",
+  SCENE_IMAGE_GENERATION = "scene-image-generation",
+  VOICEOVER_GENERATION = "voiceover-generation",
 }
 
 export const featureFlagEvents: Record<FeatureFlag, { event: string }> = {
@@ -21,5 +24,14 @@ export const featureFlagEvents: Record<FeatureFlag, { event: string }> = {
   },
   [FeatureFlag.SCRIPT_GENERATION]: {
     event: "generate-script",
+  },
+  [FeatureFlag.STORYBOARD_WORKSPACE]: {
+    event: "workspace-enabled",
+  },
+  [FeatureFlag.SCENE_IMAGE_GENERATION]: {
+    event: "scene-image-generation",
+  },
+  [FeatureFlag.VOICEOVER_GENERATION]: {
+    event: "voiceover-generation",
   },
 };

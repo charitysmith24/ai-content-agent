@@ -43,7 +43,7 @@ function FooterWrapper() {
             { href: "/tos", label: "Terms" },
           ]}
           copyright={{
-            text: "© 2025 Techvaultlabs",
+            text: "© 2025 Techvaultlabs AI Agency",
             license: "All rights reserved",
           }}
         />
