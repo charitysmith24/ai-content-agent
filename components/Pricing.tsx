@@ -42,13 +42,16 @@ const tiers: Tier[] = [
     href: "/manage-plan",
     price: { monthly: "$10", annually: "$84" },
     description:
-      "Take you content to the next-level using all of our AI-powered video tools! Generate eye-catching thumbnails, compelling titles, and seamless scripts saving you time while maximizing engagement.",
+      "Take you content to the next-level using all of our AI-powered video tools! Generate eye-catching thumbnails using Dall-E 3, compelling titles, and seamless scripts saving you time while maximizing engagement.",
     features: [
       "50 Video Analysis",
       "50 Transcriptions",
       "50 Thumbnail Generation",
       "50 Title Generation",
-      "50 Script Generation",
+      "50 Custom Video Script Generation",
+      "125 Scene Image Generation",
+      "5 Voiceover Generation",
+      "Storyboard Workspace"
     ],
     mostPopular: true,
   },
@@ -58,13 +61,16 @@ const tiers: Tier[] = [
     href: "/manage-plan",
     price: { monthly: "$30", annually: "$295" },
     description:
-      "Unleash your creative potential! Get advanced AI tools to scale your content production and dominate the digital space with high-quality, automated video creation.",
+      "Unleash your creative potential! Get advanced AI tools using the latest imgage-generation model from OpenAI, custom prompt builder tool increase accurracy, and a storyboard workspace to scale your content production and dominate the digital space with high-quality, automated video creation.",
     features: [
-      "300 Video Analysis",
-      "300 Transcriptions",
-      "300 Thumbnail Generation",
-      "300 Title Generation",
-      "300 Script Generation",
+      "150 Video Analysis",
+      "150 Transcriptions",
+      "150 Thumbnail Generation",
+      "150 Title Generation",
+      "150 Custom Video Script Generation",
+      "1500 Scene Image Generation",
+      "10 Voiceover Generation",
+      "Storyboard Workspace"
     ],
     mostPopular: false,
   },

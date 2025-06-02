@@ -24,6 +24,10 @@ function Usage({
     value: isFeatureEnabled,
   } = useSchematicEntitlement(featureFlag);
 
+  // Debug the exact values
+  console.log(`${featureFlag} - FEATURE ALLOCATION:`, featureAllocation);
+  console.log(`${featureFlag} - FEATURE USAGE:`, featureUsage);
+
   const hasUsedAllTokens =
     featureUsage && featureAllocation && featureUsage >= featureAllocation;
 
@@ -98,11 +102,11 @@ function Usage({
         </h2>
         <div className="px-4 py-2 bg-gray-50 dark:bg-primary/0 rounded-lg">
           <span className="font-medium text-gray-700 dark:text-gray-200">
-            {featureUsage}
+            {featureUsage ?? 0}
           </span>
           <span className="text-gray-400 mx-2">/</span>
           <span className="font-medium text-gray-700 dark:text-gray-200">
-            {featureAllocation}
+            {featureAllocation ?? 50}
           </span>
         </div>
       </div>

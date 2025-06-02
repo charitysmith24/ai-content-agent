@@ -2,6 +2,14 @@
 
 Welcome to the AI Content Agent documentation. This directory contains comprehensive documentation for the AI-powered YouTube video analysis and content generation application.
 
+## Key Features
+
+- **Video Analysis**: Process YouTube videos to extract insights and content
+- **AI Content Generation**: Create thumbnails, titles, and scripts using AI
+- **Script-to-Storyboard Workspace**: Transform scripts into visual storyboards with scene-by-scene analysis, image generation, and voice-over integration
+- **Chat Interface**: Interactive AI assistant for content creation
+- **Real-time Database**: Convex-powered real-time data synchronization
+
 ## Documentation Structure
 
 ### SDLC Documents
@@ -60,3 +68,21 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/bui
 ## Convex
 
 Start convex localy - npx convex dev
+
+## Development Tools
+
+### Convex Database
+
+Start Convex locally:
+
+```bash
+npx convex dev
+```
+
+### Feature Flags
+
+The application uses feature flags to control access to various features. New features include:
+
+- `STORYBOARD_WORKSPACE` - Enables the Script-to-Storyboard Workspace
+- `SCENE_IMAGE_GENERATION` - Enables image generation for storyboard scenes
+- `VOICEOVER_GENERATION` - Enables voice-over generation using ElevenLabs

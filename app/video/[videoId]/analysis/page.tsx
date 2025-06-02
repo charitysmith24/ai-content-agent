@@ -7,6 +7,7 @@ import ThumbnailGeneration from "@/components/ThumbnailGeneration";
 import TitleGeneration from "@/components/TitleGeneration";
 import Transcription from "@/components/Transcription";
 import Usage from "@/components/Usage";
+import VideoNavigation from "@/components/VideoNavigation";
 import YoutubeVideoDetails from "@/components/YoutubeVideoDetails";
 import { Doc } from "@/convex/_generated/dataModel";
 import { FeatureFlag } from "@/features/flags";
@@ -71,7 +72,12 @@ function AnalysisPage() {
 
   return (
     <div className="xl:container mx-auto mb-9 px-4 md:px-0">
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 pt-12">
+      {/* Video Navigation */}
+      <div className="pt-8">
+        <VideoNavigation videoId={videoId} />
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 pt-4">
         {/* Left Side */}
         <div className="order-2 lg:order-1 flex flex-col gap-4 px-3 md:px-6 bg-white dark:bg-black/0 lg:border-r border-gray-100 dark:border-primary/50">
           {/* Analysis Section */}
