@@ -180,7 +180,7 @@ function VoiceoverPanel({ sceneId, scriptId, videoId }: VoiceoverPanelProps) {
         <>
           {/* Voice Selection */}
           <div className="mb-4">
-            <Label htmlFor="voice-select">Select Voice</Label>
+            <Label htmlFor="voice-select" className="text-xs text-gray-500 dark:text-gray-400 mb-1 block">Select Voice</Label>
             <Select
               value={selectedVoice}
               onValueChange={setSelectedVoice}

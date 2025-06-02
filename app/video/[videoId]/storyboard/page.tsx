@@ -46,7 +46,7 @@ function StoryboardPage() {
   }, [videoId, user]);
 
   return (
-    <div className="xl:container mx-auto mb-9 px-4 md:px-0">
+    <div className="container mx-auto mb-9 px-4 md:px-0">
       {/* Video Navigation */}
       <div className="pt-8">
         <VideoNavigation videoId={videoId} />
@@ -63,8 +63,8 @@ function StoryboardPage() {
           </div>
           <div className="shrink-0">
             <Usage
-              featureFlag={FeatureFlag.STORYBOARD_WORKSPACE}
-              title="Storyboard Workspace"
+              featureFlag={FeatureFlag.SCENE_IMAGE_GENERATION}
+              title="Scene Images"
             />
           </div>
         </div>

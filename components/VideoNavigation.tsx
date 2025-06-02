@@ -15,7 +15,7 @@ function VideoNavigation({ videoId }: VideoNavigationProps) {
   const isStoryboardPage = pathname.includes('/storyboard');
 
   return (
-    <div className="flex items-center gap-2 border border-primary/70 dark:border-primary/50 rounded-xl mx-6 p-2 bg-white dark:bg-black/10 mb-4">
+    <div className="flex items-center gap-2 border border-primary/70 dark:border-primary/50 rounded-xl mx-auto p-2 bg-white dark:bg-black/10 mb-4">
       <Link
         href={`/video/${videoId}/analysis`}
         className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${

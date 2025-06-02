@@ -160,7 +160,7 @@ function StoryboardScenes({ scriptId, selectedSceneId, onSelectScene }: Storyboa
       )}
 
       {scenes && scenes.length > 0 && (
-        <div className="space-y-3 overflow-y-auto max-h-[600px] pr-1">
+        <div className="space-y-3 overflow-y-auto max-h-[600px] pr-4">
           {scenes.map((scene) => (
             <div
               key={scene._id}
