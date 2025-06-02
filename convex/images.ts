@@ -158,3 +158,18 @@ export const incrementDownloadCount = mutation({
     return args.imageId;
   },
 });
+
+// Get a storage URL from a storage ID
+export const getStorageUrl = query({
+  args: {
+    storageId: v.id("_storage"),
+    userId: v.string(),
+  },
+  handler: async (ctx, args) => {
+    // Optional: Check if the user has access to this storage ID
+    // This could be done by checking if any image with this storageId belongs to the user
+    
+    // Return the URL for the storage ID
+    return await ctx.storage.getUrl(args.storageId);
+  },
+});

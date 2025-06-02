@@ -281,4 +281,31 @@ export const generateSceneImage = mutation({
     
     return { success: true };
   },
+});
+
+// Update a scene with an image
+export const updateSceneImage = mutation({
+  args: {
+    sceneId: v.id("storyboard_scenes"),
+    imageId: v.id("_storage"),
+    userId: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const scene = await ctx.db.get(args.sceneId);
+    
+    if (!scene) {
+      throw new Error("Scene not found");
+    }
+    
+    if (scene.userId !== args.userId) {
+      throw new Error("Unauthorized");
+    }
+    
+    // Update the scene with the image ID
+    await ctx.db.patch(args.sceneId, {
+      imageId: args.imageId,
+    });
+    
+    return { success: true };
+  },
 }); 

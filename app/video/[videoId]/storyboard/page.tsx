@@ -54,7 +54,7 @@ function StoryboardPage() {
       
       <div className="flex flex-col gap-6 pt-4">
         {/* Header */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div className="flex flex-row md:flex-row justify-between items-start md:items-center gap-4">
           <div>
             <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Script-to-Storyboard Workspace</h1>
             <p className="text-gray-500 dark:text-gray-400 mt-1">
@@ -70,9 +70,9 @@ function StoryboardPage() {
         </div>
 
         {/* Video Info */}
-        <div className="border border-primary/70 dark:border-primary/50 rounded-xl p-4">
+{/*         <div className="max-h-[750px]border border-primary/70 dark:border-primary/50 rounded-xl p-4">
           <YoutubeVideoDetails videoId={videoId} />
-        </div>
+        </div> */}
 
         {/* Main Workspace */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">

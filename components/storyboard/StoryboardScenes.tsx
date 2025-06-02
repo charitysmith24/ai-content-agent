@@ -40,6 +40,8 @@ function StoryboardScenes({ scriptId, selectedSceneId, onSelectScene }: Storyboa
   const { user } = useUser();
   const [isGenerating, setIsGenerating] = useState(false);
   
+  // Use STORYBOARD_WORKSPACE feature flag for overall storyboard functionality
+  // This controls scene generation from scripts
   const { value: isStoryboardEnabled } = useSchematicEntitlement(
     FeatureFlag.STORYBOARD_WORKSPACE
   );

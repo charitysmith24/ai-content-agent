@@ -6,19 +6,29 @@ import { getConvexClient } from "@/lib/convex";
 import { client } from "@/lib/schematic";
 import { currentUser } from "@clerk/nextjs/server";
 import OpenAI from "openai";
+import { Id } from "@/convex/_generated/dataModel";
 
-// Using GPT-Image-1 for thumbnail generation
-// This model is preferred for video thumbnails due to its high quality and realistic style
+// Using GPT-Image-1 for storyboard scene image generation
+// This model is preferred for detailed scene images with precise control over visual elements
 const IMAGE_SIZE = "1024x1024" as const; // Supported: "1024x1024", "1024x1536", "1536x1024", or "auto"
 const convexClient = getConvexClient();
 
 /**
- * Generate a thumbnail image using OpenAI's GPT-Image-1 model
+ * Generate a detailed scene image using OpenAI's GPT-Image-1 model
  * 
- * This action is specifically for generating video thumbnails and is gated by
- * the IMAGE_GENERATION feature flag (different from scene image generation).
+ * This action is specifically for generating storyboard scene images and is gated by
+ * the SCENE_IMAGE_GENERATION feature flag (different from thumbnail generation).
+ * 
+ * The scene images include more context like emotional tone and visual elements
+ * to create a more accurate representation of the scene.
  */
-export const dalleImageGeneration = async (prompt: string, videoId: string) => {
+export const sceneImageGeneration = async (
+  sceneId: string,
+  sceneContent: string,
+  emotion: string | undefined,
+  visualElements: string[] | undefined,
+  videoId: string
+) => {
   const user = await currentUser();
 
   if (!user?.id) {
@@ -35,31 +45,41 @@ export const dalleImageGeneration = async (prompt: string, videoId: string) => {
       },
     };
 
-    // Check the IMAGE_GENERATION feature flag (for thumbnails)
-    const isImageGenerationEnabled = await client.checkFlag(
+    // Check the SCENE_IMAGE_GENERATION feature flag
+    const isSceneImageGenerationEnabled = await client.checkFlag(
       schematicCtx,
-      FeatureFlag.IMAGE_GENERATION
+      FeatureFlag.SCENE_IMAGE_GENERATION
     );
 
-    if (!isImageGenerationEnabled) {
-      console.warn("⚠️ Image generation not enabled for user", user.id);
-      throw new Error("Image generation is not enabled, please upgrade");
+    if (!isSceneImageGenerationEnabled) {
+      console.warn("⚠️ Scene image generation not enabled for user", user.id);
+      throw new Error("Scene image generation is not enabled, please upgrade");
     }
 
+    // Initialize OpenAI
     const openai = new OpenAI({
       apiKey: process.env.OPENAI_API_KEY,
     });
-  
-    if (!prompt) {
-      throw new Error("Failed to generate image prompt");
+
+    // Construct a more detailed prompt for scene visualization
+    let detailedPrompt = `Create a vivid, cinematic image for the following scene from a video storyboard:\n\n${sceneContent}`;
+    
+    if (emotion) {
+      detailedPrompt += `\n\nThe emotional tone should be: ${emotion}`;
     }
-  
-    console.log("🎨 Generating image with GPT-Image-1 model:", prompt);
-  
-    // Generate the image using GPT-Image-1 following official documentation
+    
+    if (visualElements && visualElements.length > 0) {
+      detailedPrompt += `\n\nImportant visual elements to include: ${visualElements.join(", ")}`;
+    }
+    
+    detailedPrompt += "\n\nCreate a high-quality, professional image suitable for a video production storyboard. Use realistic style with good lighting and composition.";
+
+    console.log("🎨 Generating scene image with prompt:", detailedPrompt);
+
+    // Generate the image using GPT-Image-1 with streaming
     const imageResponse = await openai.images.generate({
       model: "gpt-image-1",
-      prompt: prompt,
+      prompt: detailedPrompt,
       size: IMAGE_SIZE,
       quality: "high", // "low", "medium", "high", or "auto"
     });
@@ -68,7 +88,7 @@ export const dalleImageGeneration = async (prompt: string, videoId: string) => {
     if (!imageResponse.data || imageResponse.data.length === 0) {
       throw new Error("No image data received from OpenAI");
     }
-  
+
     // Handle base64 response (default for gpt-image-1)
     const imageData = imageResponse.data[0];
     
@@ -79,12 +99,12 @@ export const dalleImageGeneration = async (prompt: string, videoId: string) => {
     console.log("📥 Processing base64 image data...");
     const imageBytes = Buffer.from(imageData.b64_json, 'base64');
     const imageBlob = new Blob([imageBytes], { type: 'image/png' });
-  
+
     // Step 1: Get a short-lived upload URL for Convex
     console.log("📤 Getting upload URL...");
     const postUrl = await convexClient.mutation(api.images.generateUploadUrl);
     console.log("✅ Got upload URL");
-  
+
     // Step 2: Upload the image to the convex storage bucket
     console.log("📁 Uploading image to storage...");
     const result = await fetch(postUrl, {
@@ -96,28 +116,22 @@ export const dalleImageGeneration = async (prompt: string, videoId: string) => {
     if (!result.ok) {
       throw new Error("Failed to upload image to storage");
     }
-  
+
     const { storageId } = await result.json();
     console.log("✅ Uploaded image to storage with ID:", storageId);
-  
-    // Step 3: Save the newly allocated storage id to the database
-    console.log("💾 Saving image reference to database...");
-    await convexClient.mutation(api.images.storeImage, {
-      storageId: storageId,
-      videoId,
+
+    // Step 3: Update the scene with the storage ID
+    console.log("💾 Updating scene with image reference...");
+    await convexClient.mutation(api.storyboard.updateSceneImage, {
+      sceneId: sceneId as Id<"storyboard_scenes">,
+      imageId: storageId,
       userId: user.id,
     });
-    console.log("✅ Saved image reference to database");
-  
-    // Get serve image url
-    const dbImageUrl = await convexClient.query(api.images.getImage, {
-      videoId,
-      userId: user.id,
-    });
-  
-    // Track the image generation event
+    console.log("✅ Updated scene with image reference");
+
+    // Track the scene image generation event
     await client.track({
-      event: featureFlagEvents[FeatureFlag.IMAGE_GENERATION].event,
+      event: featureFlagEvents[FeatureFlag.SCENE_IMAGE_GENERATION].event,
       company: {
         id: user.id,
       },
@@ -125,12 +139,14 @@ export const dalleImageGeneration = async (prompt: string, videoId: string) => {
         id: user.id,
       },
     });
-  
+
     return {
-      imageUrl: dbImageUrl,
+      success: true,
+      storageId,
     };
   } catch (error) {
-    console.error("❌ Error in GPT-Image-1 generation process:", {
+    console.error("❌ Error in scene image generation process:", {
+      sceneId,
       videoId,
       userId: user.id,
       error: error instanceof Error ? error.message : "Unknown error",
@@ -138,4 +154,4 @@ export const dalleImageGeneration = async (prompt: string, videoId: string) => {
     });
     throw error;
   }
-};
+}; 

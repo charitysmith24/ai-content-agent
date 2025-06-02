@@ -40,6 +40,7 @@ import Image from "next/image";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
+import { sceneImageGeneration } from "@/actions/sceneImageGeneration";
 
 const formSchema = z.object({
   sceneName: z.string().min(1, { message: "Name is required" }),
@@ -78,7 +79,9 @@ function SceneDetails({ sceneId, scriptId, videoId }: SceneDetailsProps) {
   const { user } = useUser();
   const [isGeneratingImage, setIsGeneratingImage] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+  const [imageUrl, setImageUrl] = useState<string | null>(null);
   
+  // Use the SCENE_IMAGE_GENERATION feature flag
   const { value: isSceneImageGenerationEnabled } = useSchematicEntitlement(
     FeatureFlag.SCENE_IMAGE_GENERATION
   );
@@ -93,6 +96,27 @@ function SceneDetails({ sceneId, scriptId, videoId }: SceneDetailsProps) {
   );
   
   const scene = scenes?.find(s => s._id === sceneId);
+  
+  // Get image URL if scene has an imageId
+  useEffect(() => {
+    if (scene?.imageId && user?.id) {
+      const getImageUrl = async () => {
+        try {
+          const url = await fetch(`/api/get-image-url?storageId=${scene.imageId}&userId=${user.id}`);
+          const data = await url.json();
+          if (data.url) {
+            setImageUrl(data.url);
+          }
+        } catch (error) {
+          console.error("Error fetching image URL:", error);
+        }
+      };
+      
+      getImageUrl();
+    } else {
+      setImageUrl(null);
+    }
+  }, [scene?.imageId, user?.id]);
   
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -120,21 +144,34 @@ function SceneDetails({ sceneId, scriptId, videoId }: SceneDetailsProps) {
   
   // Use the proper API references
   const updateScene = useMutation(api.storyboard.updateScene);
-  const generateSceneImage = useMutation(api.storyboard.generateSceneImage);
   
   const handleGenerateImage = async () => {
-    if (!sceneId || !user?.id) return;
+    if (!sceneId || !user?.id || !scene) return;
     
     try {
       setIsGeneratingImage(true);
-      await generateSceneImage({
-        sceneId: sceneId as Id<"storyboard_scenes">,
-        userId: user.id,
+      toast.info("Image generation started", {
+        description: "This may take a few moments...",
+        duration: 3000,
       });
-      toast.success("Image generation started");
+      
+      const result = await sceneImageGeneration(
+        sceneId as string,
+        scene.sceneContent,
+        scene.emotion,
+        scene.visualElements,
+        videoId
+      );
+      
+      if (result.success) {
+        toast.success("Image generated successfully");
+        // The scene will be updated via Convex, and the image will load
+      }
     } catch (error) {
       console.error(error);
-      toast.error("Error generating image");
+      toast.error("Error generating image", {
+        description: error instanceof Error ? error.message : "Unknown error occurred",
+      });
     } finally {
       setIsGeneratingImage(false);
     }
@@ -206,12 +243,19 @@ function SceneDetails({ sceneId, scriptId, videoId }: SceneDetailsProps) {
       <div className="space-y-4">
         {/* Image */}
         <div className="aspect-video bg-gray-100 dark:bg-gray-800 rounded-lg flex items-center justify-center overflow-hidden">
-          {scene.imageId ? (
+          {imageUrl ? (
             <div className="relative w-full h-full">
-              {/* In a real implementation, we would fetch the image URL from storage */}
-              <div className="absolute inset-0 flex items-center justify-center text-gray-400">
-                Scene image would display here
-              </div>
+              <Image
+                src={imageUrl}
+                alt={scene.sceneName}
+                fill
+                className="object-contain"
+              />
+            </div>
+          ) : scene.imageId ? (
+            <div className="text-center p-4">
+              <RefreshCw className="h-8 w-8 mx-auto text-gray-400 mb-2 animate-spin" />
+              <p className="text-sm text-gray-500">Loading image...</p>
             </div>
           ) : (
             <div className="text-center p-4">
@@ -223,50 +267,56 @@ function SceneDetails({ sceneId, scriptId, videoId }: SceneDetailsProps) {
         </div>
         
         {/* Scene Info */}
-        <div>
-          <h3 className="text-md font-medium text-gray-900 dark:text-white mb-1">
-            {scene.sceneName}
-          </h3>
-          
-          {/* Tags */}
-          <div className="flex flex-wrap gap-2 mb-3">
-            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200">
-              {scene.contentType}
-            </span>
-            
-            {scene.emotion && (
-              <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300">
-                Mood: {scene.emotion}
+        <div className="space-y-2">
+          <div>
+            <h3 className="text-sm font-medium text-gray-900 dark:text-white">
+              {scene.sceneName}
+            </h3>
+            <div className="mt-1 flex items-center">
+              <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
+                scene.contentType === "intro" ? "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300" :
+                scene.contentType === "dialogue" ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300" :
+                scene.contentType === "transition" ? "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300" :
+                scene.contentType === "outro" ? "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300" :
+                "bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-300"
+              }`}>
+                {scene.contentType.charAt(0).toUpperCase() + scene.contentType.slice(1)}
               </span>
-            )}
-            
-            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300">
-              Scene {scene.sceneIndex + 1}
-            </span>
+              
+              {scene.emotion && (
+                <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300">
+                  Mood: {scene.emotion}
+                </span>
+              )}
+              
+              <span className="ml-auto text-xs text-gray-500">
+                Scene {scene.sceneIndex + 1}
+              </span>
+            </div>
           </div>
           
-          {/* Content */}
-          <p className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap">
+          <div className="text-sm text-gray-600 dark:text-gray-300 whitespace-pre-wrap">
             {scene.sceneContent}
-          </p>
+          </div>
           
-          {/* Notes */}
           {scene.notes && (
-            <div className="mt-4 p-3 bg-amber-50 dark:bg-amber-900/20 rounded-md border border-amber-100 dark:border-amber-800">
-              <h4 className="text-xs font-medium text-amber-800 dark:text-amber-300 mb-1">Production Notes</h4>
-              <p className="text-xs text-amber-700 dark:text-amber-400">{scene.notes}</p>
+            <div className="mt-4">
+              <h4 className="text-xs font-medium text-gray-900 dark:text-white mb-1">Notes</h4>
+              <p className="text-xs text-gray-600 dark:text-gray-300 bg-gray-50 dark:bg-gray-800/50 p-2 rounded">
+                {scene.notes}
+              </p>
             </div>
           )}
         </div>
       </div>
 
-      {/* Edit Dialog */}
+      {/* Edit Scene Dialog */}
       <Dialog open={isEditing} onOpenChange={setIsEditing}>
         <DialogContent className="sm:max-w-[500px]">
           <DialogHeader>
             <DialogTitle>Edit Scene</DialogTitle>
             <DialogDescription>
-              Update the details of this scene in your storyboard.
+              Update the details for this scene
             </DialogDescription>
           </DialogHeader>
           
@@ -279,50 +329,7 @@ function SceneDetails({ sceneId, scriptId, videoId }: SceneDetailsProps) {
                   <FormItem>
                     <FormLabel>Scene Name</FormLabel>
                     <FormControl>
-                      <Input placeholder="Enter scene name" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              
-              <FormField
-                control={form.control}
-                name="contentType"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Content Type</FormLabel>
-                    <Select 
-                      onValueChange={field.onChange} 
-                      defaultValue={field.value}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select content type" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="intro">Intro</SelectItem>
-                        <SelectItem value="action">Action</SelectItem>
-                        <SelectItem value="dialogue">Dialogue</SelectItem>
-                        <SelectItem value="transition">Transition</SelectItem>
-                        <SelectItem value="outro">Outro</SelectItem>
-                        <SelectItem value="other">Other</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              
-              <FormField
-                control={form.control}
-                name="emotion"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Emotion/Mood (optional)</FormLabel>
-                    <FormControl>
-                      <Input placeholder="e.g., happy, serious, dramatic" {...field} />
+                      <Input placeholder="Scene name" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -336,29 +343,63 @@ function SceneDetails({ sceneId, scriptId, videoId }: SceneDetailsProps) {
                   <FormItem>
                     <FormLabel>Scene Content</FormLabel>
                     <FormControl>
-                      <Textarea 
-                        placeholder="Enter scene content/script" 
-                        className="min-h-[120px]"
-                        {...field} 
-                      />
+                      <Textarea placeholder="Scene content" {...field} rows={5} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
               
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="contentType"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Content Type</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select type" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="intro">Intro</SelectItem>
+                          <SelectItem value="action">Action</SelectItem>
+                          <SelectItem value="dialogue">Dialogue</SelectItem>
+                          <SelectItem value="transition">Transition</SelectItem>
+                          <SelectItem value="outro">Outro</SelectItem>
+                          <SelectItem value="other">Other</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={form.control}
+                  name="emotion"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Emotion/Mood</FormLabel>
+                      <FormControl>
+                        <Input placeholder="e.g. Happy, Serious" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+              
               <FormField
                 control={form.control}
                 name="notes"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Production Notes (optional)</FormLabel>
+                    <FormLabel>Notes</FormLabel>
                     <FormControl>
-                      <Textarea 
-                        placeholder="Add any production notes or instructions" 
-                        className="min-h-[80px]"
-                        {...field} 
-                      />
+                      <Textarea placeholder="Production notes" {...field} rows={3} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -366,11 +407,7 @@ function SceneDetails({ sceneId, scriptId, videoId }: SceneDetailsProps) {
               />
               
               <DialogFooter>
-                <Button 
-                  type="button" 
-                  variant="outline" 
-                  onClick={() => setIsEditing(false)}
-                >
+                <Button type="button" variant="outline" onClick={() => setIsEditing(false)}>
                   Cancel
                 </Button>
                 <Button type="submit">Save Changes</Button>
