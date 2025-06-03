@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { FeatureFlag } from "@/features/flags";
 import { useSchematicEntitlement } from "@schematichq/schematic-react";
-import { ImageIcon, Camera, Pencil, RefreshCw } from "lucide-react";
+import { ImageIcon, Camera, Pencil, RefreshCw, Link } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -92,6 +92,8 @@ function SceneDetails({ sceneId, scriptId, videoId }: SceneDetailsProps) {
   const [isGeneratingImage, setIsGeneratingImage] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const [selectedReferenceScene, setSelectedReferenceScene] =
+    useState<string>("auto");
 
   // Use the SCENE_IMAGE_GENERATION feature flag
   const { value: isSceneImageGenerationEnabled } = useSchematicEntitlement(
@@ -110,6 +112,14 @@ function SceneDetails({ sceneId, scriptId, videoId }: SceneDetailsProps) {
   );
 
   const scene = scenes?.find((s) => s._id === sceneId);
+  // Get scenes with images for reference (scenes before current scene)
+  const scenesWithImages =
+    scenes
+      ?.filter((s) => s.imageId && s.sceneIndex < (scene?.sceneIndex ?? 0))
+      .sort((a, b) => b.sceneIndex - a.sceneIndex) || []; // Sort by index descending (most recent first)
+
+  // Get the most recent scene with image for auto-selection
+  const mostRecentSceneWithImage = scenesWithImages[0];
 
   // Get image URL if scene has an imageId
   useEffect(() => {
@@ -173,22 +183,44 @@ function SceneDetails({ sceneId, scriptId, videoId }: SceneDetailsProps) {
 
     try {
       setIsGeneratingImage(true);
-      toast.info("Image generation started", {
-        description: "This may take a few moments...",
-        duration: 3000,
-      });
+
+      // Determine which reference scene to use
+      let referenceSceneId: string | undefined;
+      if (selectedReferenceScene === "auto") {
+        referenceSceneId = mostRecentSceneWithImage?._id;
+      } else if (selectedReferenceScene !== "none") {
+        referenceSceneId = selectedReferenceScene;
+      }
+
+      // Show appropriate toast message
+      if (referenceSceneId) {
+        const refScene = scenes?.find((s) => s._id === referenceSceneId);
+        toast.info(
+          `Generating image using Scene ${(refScene?.sceneIndex ?? 0) + 1} as reference`,
+          {
+            description: "This may take a few moments...",
+            duration: 3000,
+          }
+        );
+      } else {
+        toast.info("Image generation started", {
+          description: "This may take a few moments...",
+          duration: 3000,
+        });
+      }
 
       const result = await sceneImageGeneration(
         sceneId as string,
         scene.sceneContent,
         scene.emotion,
         scene.visualElements,
-        videoId
+        videoId,
+        referenceSceneId, // Pass the reference scene ID
+        scriptId as string // Pass the script ID for easier queries
       );
 
       if (result.success) {
         toast.success("Image generated successfully");
-        // The scene will be updated via Convex, and the image will load
       }
     } catch (error) {
       console.error(error);
@@ -264,6 +296,41 @@ function SceneDetails({ sceneId, scriptId, videoId }: SceneDetailsProps) {
           </Button>
         </div>
       </div>
+
+      {scenesWithImages.length > 0 && (
+        <div className="mb-4 p-3 bg-gray-50 dark:bg-gray-800/50 rounded-md">
+          <div className="flex items-center gap-2 mb-2">
+            <Link className="h-4 w-4 text-primary" />
+            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+              Reference Image for Consistency
+            </span>
+          </div>
+          <Select
+            value={selectedReferenceScene}
+            onValueChange={setSelectedReferenceScene}
+          >
+            <SelectTrigger className="w-full">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="auto">
+                Auto (Scene {(mostRecentSceneWithImage?.sceneIndex ?? 0) + 1} -
+                Most Recent)
+              </SelectItem>
+              <SelectItem value="none">No Reference</SelectItem>
+              {scenesWithImages.map((refScene) => (
+                <SelectItem key={refScene._id} value={refScene._id}>
+                  Scene {refScene.sceneIndex + 1}: {refScene.sceneName}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+            Using a reference image helps maintain character and style
+            consistency across scenes
+          </p>
+        </div>
+      )}
 
       {/* Scene Content View */}
       <div className="space-y-4">
