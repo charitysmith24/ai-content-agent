@@ -2,14 +2,22 @@
 
 import { useUser } from "@clerk/nextjs";
 import { api } from "@/convex/_generated/api";
-import { useQuery, useMutation } from "convex/react";
+import { useQuery, useMutation, useAction } from "convex/react";
 import { Id } from "@/convex/_generated/dataModel";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { FeatureFlag } from "@/features/flags";
 import { useSchematicEntitlement } from "@schematichq/schematic-react";
-import { MicIcon, Play, Pause, Trash2, Volume2, RefreshCw } from "lucide-react";
+import {
+  MicIcon,
+  Play,
+  Pause,
+  Trash2,
+  Volume2,
+  RefreshCw,
+  AlertTriangle,
+} from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -18,6 +26,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
+import { useAudioPlayer } from "@/components/hooks/useAudioPlayer";
+import AudioErrorBoundary from "@/components/errors/AudioErrorBoundary";
 
 interface VoiceoverPanelProps {
   sceneId: string | null;
@@ -56,57 +66,109 @@ type Voiceover = {
   voiceProvider: string;
   duration?: number;
   text: string;
+  status?: "processing" | "completed" | "failed";
+  errorMessage?: string;
+  url?: string;
   createdAt: number;
 };
 
-const MOCK_VOICES = [
-  { id: "adam", name: "Adam (Male)", gender: "male" },
-  { id: "sarah", name: "Sarah (Female)", gender: "female" },
-  { id: "thomas", name: "Thomas (Male)", gender: "male" },
-  { id: "emily", name: "Emily (Female)", gender: "female" },
-  { id: "michael", name: "Michael (Male)", gender: "male" },
-];
+// Type for ElevenLabs voice
+type ElevenLabsVoice = {
+  id: string;
+  name: string;
+  gender: string;
+  category: string;
+};
 
 function VoiceoverPanel({ sceneId, scriptId, videoId }: VoiceoverPanelProps) {
   const { user } = useUser();
   const [isGenerating, setIsGenerating] = useState(false);
-  const [selectedVoice, setSelectedVoice] = useState(MOCK_VOICES[0].id);
-  const [isPlaying, setIsPlaying] = useState(false);
-  
+  const [selectedVoice, setSelectedVoice] = useState<string>("");
+
   const { value: isVoiceoverEnabled } = useSchematicEntitlement(
     FeatureFlag.VOICEOVER_GENERATION
   );
-  
+
   // Get scene details if a scene is selected
   const scenes = useQuery(
     api.storyboard.getScenes,
-    sceneId && scriptId ? {
-      scriptId: scriptId as Id<"scripts">,
-      userId: user?.id ?? ""
-    } : "skip"
+    sceneId && scriptId
+      ? {
+          scriptId: scriptId as Id<"scripts">,
+          userId: user?.id ?? "",
+        }
+      : "skip"
   );
-  
-  const scene = scenes?.find(s => s._id === sceneId);
-  
+
+  const scene = scenes?.find((s) => s._id === sceneId);
+
   // Get voiceover if it exists for this scene
   const voiceover = useQuery(
     api.voiceover.getSceneVoiceover,
-    sceneId ? {
-      sceneId: sceneId as Id<"storyboard_scenes">,
-      userId: user?.id ?? ""
-    } : "skip"
+    sceneId
+      ? {
+          sceneId: sceneId as Id<"storyboard_scenes">,
+          userId: user?.id ?? "",
+        }
+      : "skip"
   );
-  
+
+  // Get available voices from ElevenLabs
+  const voicesAction = useAction(api.voiceover.getAvailableVoices);
+  const [voices, setVoices] = useState<ElevenLabsVoice[]>([]);
+
+  // Use the custom audio player hook
+  const {
+    isPlaying,
+    progress,
+    error: audioError,
+    audioRef,
+    togglePlayback,
+    resetError,
+  } = useAudioPlayer(
+    // Only pass a valid URL string or undefined
+    voiceover?.url && typeof voiceover.url === "string"
+      ? voiceover.url
+      : undefined,
+    () => {
+      // No special handling needed for onEnded
+    }
+  );
+
+  // Fetch voices when component mounts
+  useEffect(() => {
+    const fetchVoices = async () => {
+      try {
+        const fetchedVoices = await voicesAction({});
+        if (fetchedVoices && Array.isArray(fetchedVoices)) {
+          setVoices(fetchedVoices);
+        }
+      } catch (error) {
+        console.error("Error fetching voices:", error);
+      }
+    };
+
+    fetchVoices();
+  }, [voicesAction]);
+
+  // Set the first voice as selected by default when voices are loaded
+  useEffect(() => {
+    if (voices.length > 0 && !selectedVoice) {
+      setSelectedVoice(voices[0].id);
+    }
+  }, [voices, selectedVoice]);
+
   // Mutations
   const generateVoiceover = useMutation(api.voiceover.generateVoiceover);
   const deleteVoiceover = useMutation(api.voiceover.deleteVoiceover);
-  
+
   const handleGenerateVoiceover = async () => {
-    if (!sceneId || !scriptId || !user?.id || !scene) return;
-    
+    if (!sceneId || !scriptId || !user?.id || !scene || !selectedVoice) return;
+
     try {
       setIsGenerating(true);
-      await generateVoiceover({
+
+      const result = await generateVoiceover({
         scriptId: scriptId as Id<"scripts">,
         sceneId: sceneId as Id<"storyboard_scenes">,
         userId: user.id,
@@ -114,39 +176,56 @@ function VoiceoverPanel({ sceneId, scriptId, videoId }: VoiceoverPanelProps) {
         text: scene.sceneContent,
         voiceName: selectedVoice,
       });
-      toast.success("Voice-over generation started");
+
+      if (result.success) {
+        toast.success("Voice-over generation started");
+      } else {
+        throw new Error("Failed to start voice-over generation");
+      }
     } catch (error) {
-      console.error(error);
-      toast.error("Error generating voice-over");
+      console.error("Error generating voice-over:", error);
+
+      // Get a user-friendly error message
+      let errorMessage = "Error generating voice-over";
+      if (error instanceof Error) {
+        errorMessage = error.message || errorMessage;
+      }
+
+      // Show a more specific error message
+      toast.error(errorMessage, {
+        description: "Please try again or select a different voice",
+        duration: 5000,
+      });
     } finally {
       setIsGenerating(false);
     }
   };
-  
+
   const handleDeleteVoiceover = async () => {
     if (!voiceover) return;
-    
+
     try {
+      // Stop audio if playing
+      if (audioRef.current && isPlaying) {
+        audioRef.current.pause();
+      }
+
       await deleteVoiceover({
         voiceoverId: voiceover._id,
       });
+
       toast.success("Voice-over deleted");
     } catch (error) {
       console.error(error);
       toast.error("Error deleting voice-over");
     }
   };
-  
-  const togglePlayback = () => {
-    // In a real implementation, this would control the audio playback
-    setIsPlaying(!isPlaying);
-    
-    if (!isPlaying) {
-      toast.info("Playing voice-over", {
-        description: "This is a mock implementation. In production, this would play the actual audio.",
-        duration: 3000,
-      });
-    }
+
+  // Helper function to get voice name from ID
+  const getVoiceName = (voiceId: string) => {
+    if (!voices.length) return voiceId;
+    const voice = voices.find((v) => v.id === voiceId);
+    return voice ? voice.name : voiceId;
   };
 
   if (!scriptId || !sceneId) {
@@ -163,7 +242,9 @@ function VoiceoverPanel({ sceneId, scriptId, videoId }: VoiceoverPanelProps) {
   return (
     <div className="flex flex-col h-full">
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Voice-Over</h2>
+        <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+          Voice-Over
+        </h2>
       </div>
 
       {!isVoiceoverEnabled && (
@@ -181,30 +262,41 @@ function VoiceoverPanel({ sceneId, scriptId, videoId }: VoiceoverPanelProps) {
         <>
           {/* Voice Selection */}
           <div className="mb-4">
-            <Label htmlFor="voice-select" className="text-xs text-gray-500 dark:text-gray-400 mb-1 block">Select Voice</Label>
+            <Label
+              htmlFor="voice-select"
+              className="text-xs text-gray-500 dark:text-gray-400 mb-1 block"
+            >
+              Select Voice
+            </Label>
             <Select
               value={selectedVoice}
               onValueChange={setSelectedVoice}
-              disabled={!!voiceover || isGenerating}
+              disabled={voiceover?.status === "processing" || isGenerating}
             >
               <SelectTrigger id="voice-select" className="w-full">
                 <SelectValue placeholder="Select a voice" />
               </SelectTrigger>
               <SelectContent>
-                {MOCK_VOICES.map((voice) => (
-                  <SelectItem key={voice.id} value={voice.id}>
-                    {voice.name}
+                {voices.length > 0 ? (
+                  voices.map((voice) => (
+                    <SelectItem key={voice.id} value={voice.id}>
+                      {voice.name}
+                    </SelectItem>
+                  ))
+                ) : (
+                  <SelectItem value="loading" disabled>
+                    Loading voices...
                   </SelectItem>
-                ))}
+                )}
               </SelectContent>
             </Select>
           </div>
 
           {/* Generate Button or Audio Player */}
           {!voiceover ? (
-            <Button 
+            <Button
               onClick={handleGenerateVoiceover}
-              disabled={isGenerating || !scene}
+              disabled={isGenerating || !scene || !selectedVoice}
               className="w-full"
             >
               {isGenerating ? (
@@ -221,65 +313,130 @@ function VoiceoverPanel({ sceneId, scriptId, videoId }: VoiceoverPanelProps) {
             </Button>
           ) : (
             <div className="space-y-3">
-              {/* Audio Player UI */}
-              <div className="border rounded-md p-3 bg-gray-50 dark:bg-gray-800/50">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                    {voiceover.voiceName}
-                  </span>
-                  <span className="text-xs text-gray-500 dark:text-gray-400">
-                    {voiceover.duration ? `${voiceover.duration}s` : "Processing..."}
-                  </span>
-                </div>
-                
-                {/* Audio Controls */}
-                <div className="flex items-center gap-3">
-                  <Button 
-                    size="sm" 
-                    variant="outline" 
-                    className="h-8 w-8 p-0 rounded-full"
-                    onClick={togglePlayback}
-                  >
-                    {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
-                  </Button>
-                  
-                  {/* Mock progress bar */}
-                  <div className="flex-1 bg-gray-200 dark:bg-gray-700 h-1.5 rounded-full overflow-hidden">
-                    <div 
-                      className="bg-primary h-full" 
-                      style={{ width: isPlaying ? "45%" : "0%" }}
-                    />
+              {/* Processing Status */}
+              {voiceover.status === "processing" && (
+                <div className="border rounded-md p-3 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300">
+                  <div className="flex items-center">
+                    <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                    <span className="text-sm font-medium">
+                      Processing voice-over...
+                    </span>
                   </div>
-                  
-                  <Button 
-                    size="sm" 
-                    variant="ghost" 
-                    className="h-8 w-8 p-0 text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
-                    onClick={handleDeleteVoiceover}
+                </div>
+              )}
+
+              {/* Error Status */}
+              {voiceover.status === "failed" && (
+                <div className="border rounded-md p-3 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300">
+                  <div className="flex items-center">
+                    <AlertTriangle className="h-4 w-4 mr-2" />
+                    <span className="text-sm font-medium">
+                      Voice-over generation failed
+                    </span>
+                  </div>
+                  {voiceover.errorMessage && (
+                    <p className="text-xs mt-1">{voiceover.errorMessage}</p>
+                  )}
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full mt-2"
+                    onClick={handleGenerateVoiceover}
                   >
-                    <Trash2 className="h-4 w-4" />
+                    <RefreshCw className="h-3 w-3 mr-1" />
+                    Retry
                   </Button>
                 </div>
-              </div>
-              
+              )}
+
+              {/* Completed Status with Audio Player */}
+              {voiceover.status === "completed" && (
+                <div className="border rounded-md p-3 bg-gray-50 dark:bg-gray-800/50">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                      {getVoiceName(voiceover.voiceName)}
+                    </span>
+                    <span className="text-xs text-gray-500 dark:text-gray-400">
+                      {voiceover.duration
+                        ? `${voiceover.duration}s`
+                        : "Processing..."}
+                    </span>
+                  </div>
+
+                  {/* Audio Controls with Error Boundary */}
+                  <AudioErrorBoundary onReset={resetError}>
+                    <div className="flex items-center gap-3">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="h-8 w-8 p-0 rounded-full"
+                        onClick={togglePlayback}
+                        disabled={
+                          !voiceover.url ||
+                          typeof voiceover.url !== "string" ||
+                          audioError !== null
+                        }
+                      >
+                        {isPlaying ? (
+                          <Pause className="h-4 w-4" />
+                        ) : (
+                          <Play className="h-4 w-4" />
+                        )}
+                      </Button>
+
+                      {/* Real progress bar */}
+                      <div className="flex-1 bg-gray-200 dark:bg-gray-700 h-1.5 rounded-full overflow-hidden">
+                        <div
+                          className="bg-primary h-full transition-all duration-300"
+                          style={{ width: `${progress}%` }}
+                        />
+                      </div>
+
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="h-8 w-8 p-0 text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
+                        onClick={handleDeleteVoiceover}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </AudioErrorBoundary>
+
+                  {/* Display audio error outside of error boundary if it exists */}
+                  {audioError && (
+                    <div className="mt-2 text-xs text-red-600 dark:text-red-400">
+                      Error playing audio. Please try again or regenerate the
+                      voice-over.
+                    </div>
+                  )}
+                </div>
+              )}
+
               {/* Regenerate Button */}
-              <Button
-                variant="outline"
-                size="sm"
-                className="w-full"
-                onClick={handleGenerateVoiceover}
-                disabled={isGenerating}
-              >
-                <RefreshCw className={`h-4 w-4 mr-2 ${isGenerating ? "animate-spin" : ""}`} />
-                Regenerate with {MOCK_VOICES.find(v => v.id === selectedVoice)?.name}
-              </Button>
+              {voiceover.status === "completed" && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full"
+                  onClick={handleGenerateVoiceover}
+                  disabled={isGenerating}
+                >
+                  <RefreshCw
+                    className={`h-4 w-4 mr-2 ${isGenerating ? "animate-spin" : ""}`}
+                  />
+                  Regenerate with {getVoiceName(selectedVoice)}
+                </Button>
+              )}
             </div>
           )}
-          
+
           {/* Text Preview */}
           {scene && (
             <div className="mt-4">
-              <Label className="text-xs text-gray-500 dark:text-gray-400 mb-1 block">Voice-Over Text:</Label>
+              <Label className="text-xs text-gray-500 dark:text-gray-400 mb-1 block">
+                Voice-Over Text:
+              </Label>
               <div className="text-xs text-gray-700 dark:text-gray-300 p-3 bg-gray-50 dark:bg-gray-800/30 border rounded-md max-h-[100px] overflow-y-auto">
                 {scene.sceneContent}
               </div>
@@ -291,4 +448,4 @@ function VoiceoverPanel({ sceneId, scriptId, videoId }: VoiceoverPanelProps) {
   );
 }
 
-export default VoiceoverPanel; 
+export default VoiceoverPanel;

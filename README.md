@@ -13,6 +13,7 @@ Welcome to the AI Content Agent documentation. This directory contains comprehen
 ## Documentation Structure
 
 ### SDLC Documents
+
 - [01-Project-Overview.md](./01-Project-Overview.md) - High-level project description and objectives
 - [02-Requirements-Specification.md](./02-Requirements-Specification.md) - Functional and non-functional requirements
 - [03-System-Architecture.md](./03-System-Architecture.md) - Technical architecture and design patterns
@@ -25,9 +26,11 @@ Welcome to the AI Content Agent documentation. This directory contains comprehen
 - [10-Maintenance-Guide.md](./10-Maintenance-Guide.md) - Ongoing maintenance and updates
 
 ## Quick Start
+
 For a quick overview, start with the [Project Overview](./01-Project-Overview.md) and [System Architecture](./03-System-Architecture.md) documents.
 
 ## Contributing
+
 When updating this documentation, please maintain the existing structure and follow the established format patterns.
 
 ## Getting Started
@@ -86,3 +89,21 @@ The application uses feature flags to control access to various features. New fe
 - `STORYBOARD_WORKSPACE` - Enables the Script-to-Storyboard Workspace
 - `SCENE_IMAGE_GENERATION` - Enables image generation for storyboard scenes
 - `VOICEOVER_GENERATION` - Enables voice-over generation using ElevenLabs
+
+## ElevenLabs Voice Generation
+
+This project includes integration with ElevenLabs for AI voice generation. To use this feature:
+
+1. Set up your ElevenLabs API key as described in `tools/ELEVENLABS_CONFIG.md`
+2. Ensure your Convex environment has the API key configured
+
+### Troubleshooting ElevenLabs Integration
+
+If you encounter errors when generating voiceovers:
+
+1. Check that your ElevenLabs API key is correctly set in both `.env.local` and the Convex environment
+2. Verify that the selected voice IDs exist in your ElevenLabs account
+3. Ensure you haven't exceeded your ElevenLabs API quota
+4. Check the browser console and server logs for detailed error messages
+
+For more detailed configuration options and troubleshooting, see `tools/ELEVENLABS_CONFIG.md`.
