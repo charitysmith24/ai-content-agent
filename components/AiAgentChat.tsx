@@ -63,8 +63,8 @@ function AiAgentChat({ videoId }: { videoId: string }) {
       },
     });
 
-  const isScriptGenerationEnabled = useSchematicFlag(
-    FeatureFlag.SCRIPT_GENERATION
+  const isScriptsGenerationEnabled = useSchematicFlag(
+    FeatureFlag.SCRIPTS_GENERATION
   );
   const isImageGenerationEnabled = useSchematicFlag(
     FeatureFlag.IMAGE_GENERATION
@@ -76,72 +76,73 @@ function AiAgentChat({ videoId }: { videoId: string }) {
 
   // First useEffect - scroll handling
   useEffect(() => {
-    try {
-      console.log("[AiAgentChat] Scroll effect triggered");
-      if (bottomRef.current && messagesContainerRef.current) {
-        messagesContainerRef.current.scrollTop =
-          messagesContainerRef.current.scrollHeight;
+    if (!messages?.length) return;
+
+    const timeoutId = setTimeout(() => {
+      try {
+        const container = messagesContainerRef.current;
+        const bottom = bottomRef.current;
+
+        if (container && bottom) {
+          container.scrollTop = container.scrollHeight;
+        }
+      } catch (error) {
+        console.error("[AiAgentChat] Scroll error:", error);
       }
-    } catch (error) {
-      console.error("[AiAgentChat] Error in scroll effect:", error);
-    }
+    }, 100);
+
+    return () => clearTimeout(timeoutId);
   }, [messages]);
 
   // Second useEffect - status and toast handling
   useEffect(() => {
     try {
-      let toastId;
       console.log("[AiAgentChat] Status changed:", status);
-      
-      // Only log status without referencing messages
-      if (status === "error") {
-        console.error("[AiAgentChat] Error status triggered");
-      }
 
       switch (status) {
         case "submitted":
-          toastId = toast("Agent is thinking...", {
-            id: toastId,
+          toast("Agent is thinking...", {
+            id: "ai-status",
             icon: <BotIcon className="w-4 h-4" />,
           });
           break;
         case "streaming":
-          toastId = toast("Agent is replying...", {
-            id: toastId,
+          toast("Agent is replying...", {
+            id: "ai-status",
             icon: <BotIcon className="w-4 h-4" />,
           });
           break;
         case "error":
-          toastId = toast("Whoops! Something went wrong, please try again.", {
-            id: toastId,
+          toast("Whoops! Something went wrong, please try again.", {
+            id: "ai-status",
             icon: <BotIcon className="w-4 h-4" />,
           });
           break;
         case "ready":
-          toast.dismiss(toastId);
+          toast.dismiss("ai-status");
           break;
       }
     } catch (error) {
-      console.error("[AiAgentChat] Error in status effect:", error);
+      console.error("[AiAgentChat] Status effect error:", error);
     }
   }, [status]);
 
   /*
    * TODO: React 19 Migration
-   * 
+   *
    * The error we're experiencing with the useEffect in AiAgentChat is likely related to
    * circular dependencies or state management issues. In React 19, we could address this by:
-   * 
+   *
    * 1. Using the new `use` function instead of useEffect for handling message-dependent scrolling:
    *    - Create a proper Context or resource that React can subscribe to
    *    - Wrap the component in a Suspense boundary
    *    - Use an ErrorBoundary to handle errors properly
-   * 
+   *
    * 2. Implementation example with React 19 (once fully supported):
    *    ```tsx
    *    // Create a context for messages
    *    const MessagesContext = createContext(null);
-   *    
+   *
    *    // In the parent component
    *    <Suspense fallback={<div>Loading...</div>}>
    *      <ErrorBoundary fallback={<div>Error loading chat</div>}>
@@ -150,26 +151,26 @@ function AiAgentChat({ videoId }: { videoId: string }) {
    *        </MessagesContext.Provider>
    *      </ErrorBoundary>
    *    </Suspense>
-   *    
+   *
    *    // Inside the component
    *    function handleScroll() {
    *      const currentMessages = use(MessagesContext);
-   *      
+   *
    *      if (bottomRef.current && messagesContainerRef.current) {
    *        messagesContainerRef.current.scrollTop =
    *          messagesContainerRef.current.scrollHeight;
    *      }
-   *      
+   *
    *      return null;
    *    }
    *    ```
-   * 
+   *
    * 3. The primary benefits would be:
    *    - No dependency arrays to manage
    *    - Cleaner, more declarative code
    *    - Conditional execution of effects
    *    - Better performance through React's optimization
-   * 
+   *
    * For now, we're keeping the useEffect implementation until React 19 is fully stable
    * and we can properly implement the new patterns.
    */
@@ -185,9 +186,10 @@ function AiAgentChat({ videoId }: { videoId: string }) {
         content:
           "Generate a step-by-step shooting script for this video that I can use on my own channel to produce a video that is similar to this one, dont do any other steps such as generating a image, just generate the script only!",
       };
-      console.log("[AiAgentChat] Appending script generation message");
       await append(userMessage);
-      console.log("[AiAgentChat] Script generation message appended successfully");
+      console.log(
+        "[AiAgentChat] Script generation message appended successfully"
+      );
     } catch (error) {
       console.error("[AiAgentChat] Error generating script:", error);
       toast.error("Failed to generate script. Please try again.");
@@ -204,7 +206,9 @@ function AiAgentChat({ videoId }: { videoId: string }) {
         content: "Generate a thumbnail for this video",
       };
       await append(userMessage);
-      console.log("[AiAgentChat] Image generation message appended successfully");
+      console.log(
+        "[AiAgentChat] Image generation message appended successfully"
+      );
     } catch (error) {
       console.error("[AiAgentChat] Error generating image:", error);
       toast.error("Failed to generate thumbnail. Please try again.");
@@ -218,10 +222,13 @@ function AiAgentChat({ videoId }: { videoId: string }) {
       const userMessage: Message = {
         id: `generate-title-${randomId}`,
         role: "user",
-        content: "Generate a creative title using the context of this video, make sure it is a good title that will attract viewers",
+        content:
+          "Generate a creative title using the context of this video, make sure it is a good title that will attract viewers",
       };
       await append(userMessage);
-      console.log("[AiAgentChat] Title generation message appended successfully");
+      console.log(
+        "[AiAgentChat] Title generation message appended successfully"
+      );
     } catch (error) {
       console.error("[AiAgentChat] Error generating title:", error);
       toast.error("Failed to generate title. Please try again.");
@@ -349,10 +356,10 @@ function AiAgentChat({ videoId }: { videoId: string }) {
               className="text-xs xl:text-sm text-white w-full flex items-center justify-center gap-2 py-2 px-4 bg-primary dark:bg-primary/70 hover:bg-primary/20 hover:text-primary/90 hover:border hover:border-primary hover:dark:bg-primary/30 hover:dark:text-white rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               onClick={generateScript}
               type="button"
-              disabled={!isScriptGenerationEnabled}
+              disabled={!isScriptsGenerationEnabled}
             >
               <LetterText className="w-4 h-4" />
-              {isScriptGenerationEnabled ? (
+              {isScriptsGenerationEnabled ? (
                 <span>Generate Script</span>
               ) : (
                 <span className="">Upgrade to generate a script</span>

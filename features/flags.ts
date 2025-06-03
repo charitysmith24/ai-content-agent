@@ -7,6 +7,7 @@ export enum FeatureFlag {
   STORYBOARD_WORKSPACE = "storyboard-workspace",
   SCENE_IMAGE_GENERATION = "scene-image-generation",
   VOICEOVER_GENERATION = "voiceover-generation",
+  SCRIPTS_GENERATION = "scripts-generation",
 }
 
 export const featureFlagEvents: Record<FeatureFlag, { event: string }> = {
@@ -24,6 +25,9 @@ export const featureFlagEvents: Record<FeatureFlag, { event: string }> = {
   },
   [FeatureFlag.SCRIPT_GENERATION]: {
     event: "generate-script",
+  },
+  [FeatureFlag.SCRIPTS_GENERATION]: {
+    event: "generate-scripts",
   },
   [FeatureFlag.STORYBOARD_WORKSPACE]: {
     event: "workspace-enabled",

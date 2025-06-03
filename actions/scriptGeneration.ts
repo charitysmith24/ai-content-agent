@@ -23,7 +23,7 @@ export async function scriptGeneration(
     transcriptLength: transcript?.length,
     considerations,
     existingTitle,
-    originalVideoTitle
+    originalVideoTitle,
   });
 
   try {
@@ -52,21 +52,25 @@ export async function scriptGeneration(
     console.log("[scriptGeneration] Preparing context for script generation");
     // Determine title information for context
     const titleContext = existingTitle || originalVideoTitle || "Video Content";
-    const titleSource = existingTitle ? "ai_generated" : originalVideoTitle ? "original_video" : "auto_generated";
+    const titleSource = existingTitle
+      ? "ai_generated"
+      : originalVideoTitle
+        ? "original_video"
+        : "auto_generated";
 
     // Enhanced system prompt with title context
     const systemPrompt = `You are a professional YouTube script writer that creates engaging, step-by-step shooting scripts. Your scripts should be detailed, actionable, and formatted for easy production. Include scene descriptions, dialogue suggestions, B-roll suggestions, and filming notes.
 
-${existingTitle ? `IMPORTANT: This video has a generated title: "${existingTitle}". Ensure your script aligns with and supports this title's messaging and promise.` : ''}
+    ${existingTitle ? `IMPORTANT: This video has a generated title: "${existingTitle}". Ensure your script aligns with and supports this title's messaging and promise.` : ""}
 
-${originalVideoTitle ? `VIDEO CONTEXT: Original video title - "${originalVideoTitle}"` : ''}`;
+    ${originalVideoTitle ? `VIDEO CONTEXT: Original video title - "${originalVideoTitle}"` : ""}`;
 
     // Generate script with OpenAI
     console.log("[scriptGeneration] Calling OpenAI API");
     let response;
     try {
       response = await openai.chat.completions.create({
-        model: "gpt-4o-mini",
+        model: "gpt-4.1-nano",
         messages: [
           {
             role: "system",
@@ -76,23 +80,23 @@ ${originalVideoTitle ? `VIDEO CONTEXT: Original video title - "${originalVideoTi
             role: "user",
             content: `Please create a comprehensive step-by-step shooting script for a YouTube video based on this content. The script should include:
 
-1. Hook/Opening (first 15 seconds)
-2. Introduction
-3. Main content sections with clear transitions
-4. Call-to-action
-5. Outro
+            1. Hook/Opening (first 15 seconds)
+            2. Introduction
+            3. Main content sections with clear transitions
+            4. Call-to-action
+            5. Outro
 
-Include specific filming notes, B-roll suggestions, and dialogue recommendations.
+            Include specific filming notes, B-roll suggestions, and dialogue recommendations.
 
-${titleContext !== "Video Content" ? `Video Title: ${titleContext}` : ''}
+            ${titleContext !== "Video Content" ? `Video Title: ${titleContext}` : ""}
 
-Video Summary: ${videoSummary}
+            Video Summary: ${videoSummary}
 
-Video Transcript: ${transcript}
+            Video Transcript: ${transcript}
 
-Additional Considerations: ${considerations}
+            Additional Considerations: ${considerations}
 
-Format the script in a clear, production-ready format with scene numbers and timing suggestions.`,
+            Format the script in a clear, production-ready format with scene numbers and timing suggestions.`,
           },
         ],
         temperature: 0.7,
@@ -120,7 +124,7 @@ Format the script in a clear, production-ready format with scene numbers and tim
       const maxLength = 60;
       const prefix = "Script: ";
       const availableLength = maxLength - prefix.length;
-      
+
       if (title.length <= availableLength) {
         return `${prefix}${title}`;
       }
@@ -133,20 +137,36 @@ Format the script in a clear, production-ready format with scene numbers and tim
     // Determine script type based on content analysis
     const determineScriptType = (summary: string, title: string) => {
       const content = `${summary} ${title}`.toLowerCase();
-      
-      if (content.includes('tutorial') || content.includes('how to') || content.includes('guide')) {
-        return 'tutorial' as const;
+
+      if (
+        content.includes("tutorial") ||
+        content.includes("how to") ||
+        content.includes("guide")
+      ) {
+        return "tutorial" as const;
       }
-      if (content.includes('marketing') || content.includes('brand') || content.includes('promotion')) {
-        return 'marketing' as const;
+      if (
+        content.includes("marketing") ||
+        content.includes("brand") ||
+        content.includes("promotion")
+      ) {
+        return "marketing" as const;
       }
-      if (content.includes('entertainment') || content.includes('funny') || content.includes('comedy')) {
-        return 'entertainment' as const;
+      if (
+        content.includes("entertainment") ||
+        content.includes("funny") ||
+        content.includes("comedy")
+      ) {
+        return "entertainment" as const;
       }
-      if (content.includes('education') || content.includes('learn') || content.includes('explain')) {
-        return 'educational' as const;
+      if (
+        content.includes("education") ||
+        content.includes("learn") ||
+        content.includes("explain")
+      ) {
+        return "educational" as const;
       }
-      return 'general' as const;
+      return "general" as const;
     };
 
     const scriptType = determineScriptType(videoSummary, titleContext);
@@ -162,7 +182,11 @@ Format the script in a clear, production-ready format with scene numbers and tim
         scriptTitle,
         videoTitle: originalVideoTitle,
         generatedTitle: existingTitle || undefined,
-        titleSource: titleSource as "original_video" | "ai_generated" | "user_defined" | "auto_generated",
+        titleSource: titleSource as
+          | "original_video"
+          | "ai_generated"
+          | "user_defined"
+          | "auto_generated",
         scriptType,
       });
       console.log("[scriptGeneration] Script saved to database successfully");
@@ -174,8 +198,9 @@ Format the script in a clear, production-ready format with scene numbers and tim
     // Track feature usage
     console.log("[scriptGeneration] Tracking feature usage with Schematic");
     try {
+      // First, track the event for analytics
       await client.track({
-        event: featureFlagEvents[FeatureFlag.SCRIPT_GENERATION].event,
+        event: featureFlagEvents[FeatureFlag.SCRIPTS_GENERATION].event,
         company: {
           id: user.id,
         },
@@ -183,9 +208,31 @@ Format the script in a clear, production-ready format with scene numbers and tim
           id: user.id,
         },
       });
+
       console.log("[scriptGeneration] Feature usage tracked successfully");
     } catch (trackError) {
-      console.error("[scriptGeneration] Error tracking feature usage:", trackError);
+      console.error(
+        "[scriptGeneration] Error tracking feature usage:",
+        trackError
+      );
+      // Continue anyway - tracking failure shouldn't prevent script return
+    }
+
+    // Also track in Convex for internal analytics
+    try {
+      await convexClient.mutation(api.userAnalytics.trackUserActivity, {
+        userId: user.id,
+        activity: {
+          scriptsGenerated: 1,
+          scriptGeneration: 1,
+        },
+      });
+      console.log("[scriptGeneration] Activity tracked in Convex");
+    } catch (convexError) {
+      console.error(
+        "[scriptGeneration] Error tracking in Convex:",
+        convexError
+      );
       // Continue anyway - tracking failure shouldn't prevent script return
     }
 
@@ -195,4 +242,4 @@ Format the script in a clear, production-ready format with scene numbers and tim
     console.error("[scriptGeneration] ❌ Error generating script:", error);
     throw new Error(`Failed to generate script: ${(error as Error).message}`);
   }
-} 
+}
