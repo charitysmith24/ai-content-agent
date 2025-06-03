@@ -167,7 +167,7 @@ function StoryboardScenes({
       )}
 
       {scenes && scenes.length > 0 && (
-        <div className="space-y-3 overflow-y-auto max-h-[735px] pr-4">
+        <div className="space-y-3 overflow-y-auto max-h-[500px] lg:max-h-[735px] xl:max-h-[860px] pr-4">
           {scenes.map((scene) => (
             <div
               key={scene._id}

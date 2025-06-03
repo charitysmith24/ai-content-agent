@@ -44,19 +44,22 @@ function StoryboardPage() {
   }, [videoId, user]);
 
   return (
-    <div className="container mx-auto mb-9 px-4 md:px-0">
+    <div className="container mx-auto mb-9 px-4 lg:px-0">
       {/* Video Navigation */}
       <div className="pt-8">
         <VideoNavigation videoId={videoId} />
       </div>
-      
+
       <div className="flex flex-col gap-6 pt-4">
         {/* Header */}
-        <div className="flex flex-row md:flex-row justify-between items-start md:items-center gap-4">
+        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Script-to-Storyboard Workspace</h1>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+              Script-to-Storyboard Workspace
+            </h1>
             <p className="text-gray-500 dark:text-gray-400 mt-1">
-              Transform your scripts into complete storyboards with images and voice-overs
+              Transform your scripts into complete storyboards with images and
+              voice-overs
             </p>
           </div>
           <div className="shrink-0">
@@ -68,7 +71,7 @@ function StoryboardPage() {
         </div>
 
         {/* Video Info */}
-{/*         <div className="max-h-[750px]border border-primary/70 dark:border-primary/50 rounded-xl p-4">
+        {/*         <div className="max-h-[750px]border border-primary/70 dark:border-primary/50 rounded-xl p-4">
           <YoutubeVideoDetails videoId={videoId} />
         </div> */}
 
@@ -76,16 +79,16 @@ function StoryboardPage() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           {/* Left Panel - Script Selection */}
           <div className="lg:col-span-3 border border-primary/70 dark:border-primary/50 rounded-xl p-4 bg-white dark:bg-black/10">
-            <ScriptSelection 
-              videoId={videoId} 
-              onSelectScript={(scriptId) => setSelectedScriptId(scriptId)} 
+            <ScriptSelection
+              videoId={videoId}
+              onSelectScript={(scriptId) => setSelectedScriptId(scriptId)}
               selectedScriptId={selectedScriptId}
             />
           </div>
 
           {/* Middle Panel - Storyboard Scenes */}
           <div className="lg:col-span-5 border border-primary/70 dark:border-primary/50 rounded-xl p-4 bg-white dark:bg-black/10">
-            <StoryboardScenes 
+            <StoryboardScenes
               scriptId={selectedScriptId}
               onSelectScene={(sceneId: string) => setSelectedSceneId(sceneId)}
               selectedSceneId={selectedSceneId}
@@ -96,7 +99,7 @@ function StoryboardPage() {
           <div className="lg:col-span-4 flex flex-col gap-6">
             {/* Scene Details with Image */}
             <div className="border border-primary/70 dark:border-primary/50 rounded-xl p-4 bg-white dark:bg-black/10">
-              <SceneDetails 
+              <SceneDetails
                 sceneId={selectedSceneId}
                 scriptId={selectedScriptId}
                 videoId={videoId}
@@ -105,7 +108,7 @@ function StoryboardPage() {
 
             {/* Voice Over Panel */}
             <div className="border border-primary/70 dark:border-primary/50 rounded-xl p-4 bg-white dark:bg-black/10">
-              <VoiceoverPanel 
+              <VoiceoverPanel
                 sceneId={selectedSceneId}
                 scriptId={selectedScriptId}
                 videoId={videoId}
@@ -118,4 +121,4 @@ function StoryboardPage() {
   );
 }
 
-export default StoryboardPage; 
+export default StoryboardPage;
