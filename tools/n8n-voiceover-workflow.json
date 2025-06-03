@@ -1,0 +1,278 @@
+{
+  "name": "ElevenLabs Voiceover Generator",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "elevenlabs-voiceover",
+        "options": {}
+      },
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Extract parameters from webhook input\nconst voiceId = $input.item.json.voiceId;\nconst text = $input.item.json.text;\nconst voiceoverId = $input.item.json.voiceoverId;\nconst callbackUrl = $input.item.json.callbackUrl;\nconst modelId = $input.item.json.modelId || \"eleven_multilingual_v2\";\n\n// Generate a unique job ID\nconst jobId = Math.random().toString(36).substring(2, 15);\n\n// Return all parameters plus the job ID\nreturn {\n  jobId,\n  voiceId,\n  text,\n  voiceoverId,\n  callbackUrl,\n  modelId,\n  status: \"processing\"\n};"
+      },
+      "name": "Prepare Parameters",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "url": "=https://api.elevenlabs.io/v1/text-to-speech/{{$json.voiceId}}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {
+          "allowUnauthorizedCerts": true,
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "responseFormat": "file"
+            }
+          }
+        },
+        "bodyParametersUi": {
+          "parameter": [
+            {
+              "name": "text",
+              "value": "={{$json.text}}"
+            },
+            {
+              "name": "model_id",
+              "value": "={{$json.modelId}}"
+            },
+            {
+              "name": "voice_settings",
+              "value": "={ \"stability\": 0.5, \"similarity_boost\": 0.75 }"
+            }
+          ]
+        }
+      },
+      "name": "ElevenLabs API",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [700, 300],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "1",
+          "name": "ElevenLabs API Key"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{$json.statusCode}}",
+              "operation": "isNotEmpty"
+            },
+            {
+              "value1": "={{$json.statusCode}}",
+              "value2": "200",
+              "operation": "equals"
+            }
+          ]
+        }
+      },
+      "name": "Success?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [920, 300]
+    },
+    {
+      "parameters": {
+        "binaryPropertyName": "data",
+        "options": {}
+      },
+      "name": "Process Audio",
+      "type": "n8n-nodes-base.binaryToBase64",
+      "typeVersion": 1,
+      "position": [1120, 220]
+    },
+    {
+      "parameters": {
+        "binaryPropertyName": "data",
+        "fileName": "={{$json.voiceoverId}}.mp3",
+        "options": {}
+      },
+      "name": "Save Audio File",
+      "type": "n8n-nodes-base.writeBinaryFile",
+      "typeVersion": 1,
+      "position": [1320, 140]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Calculate audio duration (approximate based on text length)\nconst wordCount = $input.item.json.text.split(/\\s+/).length;\nconst estimatedDuration = Math.max(1, Math.round((wordCount / 150) * 60)); // 150 words per minute\n\n// Prepare success callback payload\nreturn {\n  voiceoverId: $input.item.json.voiceoverId,\n  success: true,\n  audioBase64: $input.item.json.base64, // Base64 encoded audio from previous node\n  duration: estimatedDuration,\n  callbackUrl: $input.item.json.callbackUrl\n};"
+      },
+      "name": "Prepare Success Callback",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [1320, 220]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Prepare error callback payload\nreturn {\n  voiceoverId: $input.item.json.voiceoverId,\n  success: false,\n  errorMessage: $input.item.json.message || \"Failed to generate voiceover\",\n  callbackUrl: $input.item.json.callbackUrl\n};"
+      },
+      "name": "Prepare Error Callback",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [1120, 400]
+    },
+    {
+      "parameters": {
+        "url": "={{$json.callbackUrl}}",
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true
+            }
+          }
+        },
+        "bodyParametersUi": {
+          "parameter": [
+            {
+              "name": "json",
+              "value": "={{$json}}"
+            }
+          ]
+        }
+      },
+      "name": "Send Success Callback",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [1540, 220]
+    },
+    {
+      "parameters": {
+        "url": "={{$json.callbackUrl}}",
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true
+            }
+          }
+        },
+        "bodyParametersUi": {
+          "parameter": [
+            {
+              "name": "json",
+              "value": "={{$json}}"
+            }
+          ]
+        }
+      },
+      "name": "Send Error Callback",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [1320, 400]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Prepare Parameters",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Parameters": {
+      "main": [
+        [
+          {
+            "node": "ElevenLabs API",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ElevenLabs API": {
+      "main": [
+        [
+          {
+            "node": "Success?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Success?": {
+      "main": [
+        [
+          {
+            "node": "Process Audio",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Prepare Error Callback",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Process Audio": {
+      "main": [
+        [
+          {
+            "node": "Save Audio File",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Prepare Success Callback",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Success Callback": {
+      "main": [
+        [
+          {
+            "node": "Send Success Callback",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Error Callback": {
+      "main": [
+        [
+          {
+            "node": "Send Error Callback",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "credentials": {
+    "httpHeaderAuth": {
+      "id": "1",
+      "name": "ElevenLabs API Key"
+    }
+  },
+  "settings": {},
+  "staticData": null,
+  "pinData": {},
+  "versionId": "",
+  "triggerCount": 0,
+  "tags": []
+}

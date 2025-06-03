@@ -4,32 +4,35 @@ import { v } from "convex/values";
 export default defineSchema({
   videos: defineTable({
     // Identification
-    videoId: v.string(),                    // YouTube video ID
-    userId: v.string(),                     // User who analyzed the video
-    
+    videoId: v.string(), // YouTube video ID
+    userId: v.string(), // User who analyzed the video
+
     // Video Metadata
-    title: v.optional(v.string()),          // Original video title
-    description: v.optional(v.string()),    // Video description
-    duration: v.optional(v.number()),       // Duration in seconds
-    thumbnailUrl: v.optional(v.string()),   // Original thumbnail URL
-    channelName: v.optional(v.string()),    // Channel/creator name
-    publishedAt: v.optional(v.string()),    // Original publish date
-    viewCount: v.optional(v.number()),      // View count at analysis time
-    
+    title: v.optional(v.string()), // Original video title
+    description: v.optional(v.string()), // Video description
+    duration: v.optional(v.number()), // Duration in seconds
+    thumbnailUrl: v.optional(v.string()), // Original thumbnail URL
+    channelName: v.optional(v.string()), // Channel/creator name
+    publishedAt: v.optional(v.string()), // Original publish date
+    viewCount: v.optional(v.number()), // View count at analysis time
+
     // Analysis Metadata
-    analyzedAt: v.optional(v.number()),     // Timestamp of analysis
-    analysisStatus: v.optional(v.union(     // Analysis processing status
-      v.literal("pending"),
-      v.literal("processing"), 
-      v.literal("completed"),
-      v.literal("failed")
-    )),
+    analyzedAt: v.optional(v.number()), // Timestamp of analysis
+    analysisStatus: v.optional(
+      v.union(
+        // Analysis processing status
+        v.literal("pending"),
+        v.literal("processing"),
+        v.literal("completed"),
+        v.literal("failed")
+      )
+    ),
     analysisVersion: v.optional(v.string()), // Track analysis algorithm version
-    
+
     // Settings & Preferences
-    isPublic: v.optional(v.boolean()),       // User privacy setting
-    tags: v.optional(v.array(v.string())),   // User-defined tags
-    notes: v.optional(v.string()),           // User notes about the video
+    isPublic: v.optional(v.boolean()), // User privacy setting
+    tags: v.optional(v.array(v.string())), // User-defined tags
+    notes: v.optional(v.string()), // User notes about the video
   })
     .index("by_user_id", ["userId"])
     .index("by_video_id", ["videoId"])
@@ -41,44 +44,56 @@ export default defineSchema({
     // Identification
     videoId: v.string(),
     userId: v.string(),
-    
+
     // Transcript Data
     transcript: v.array(
       v.object({
         text: v.string(),
         timestamp: v.string(),
-        startTime: v.optional(v.number()),     // Start time in seconds
-        endTime: v.optional(v.number()),       // End time in seconds
-        confidence: v.optional(v.number()),    // Transcription confidence score
+        startTime: v.optional(v.number()), // Start time in seconds
+        endTime: v.optional(v.number()), // End time in seconds
+        confidence: v.optional(v.number()), // Transcription confidence score
       })
     ),
-    
+
     // Metadata
-    language: v.optional(v.string()),        // Detected/specified language
-    totalDuration: v.optional(v.number()),   // Total transcript duration
-    wordCount: v.optional(v.number()),       // Total word count
-    
+    language: v.optional(v.string()), // Detected/specified language
+    totalDuration: v.optional(v.number()), // Total transcript duration
+    wordCount: v.optional(v.number()), // Total word count
+
     // Processing Info
     transcriptionService: v.optional(v.string()), // Which service was used
-    processedAt: v.optional(v.number()),    // When transcript was created
-    version: v.optional(v.string()),         // Transcript version
-    
+    processedAt: v.optional(v.number()), // When transcript was created
+    version: v.optional(v.string()), // Transcript version
+
     // Analysis Results
-    sentiment: v.optional(v.object({         // Sentiment analysis results
-      overall: v.string(),                   // positive/negative/neutral
-      confidence: v.number(),
-      details: v.optional(v.array(v.object({
-        segment: v.string(),
-        sentiment: v.string(),
-        score: v.number(),
-      })))
-    })),
-    
-    keyTopics: v.optional(v.array(v.object({ // Extracted key topics
-      topic: v.string(),
-      relevance: v.number(),
-      timestamps: v.array(v.string()),
-    }))),
+    sentiment: v.optional(
+      v.object({
+        // Sentiment analysis results
+        overall: v.string(), // positive/negative/neutral
+        confidence: v.number(),
+        details: v.optional(
+          v.array(
+            v.object({
+              segment: v.string(),
+              sentiment: v.string(),
+              score: v.number(),
+            })
+          )
+        ),
+      })
+    ),
+
+    keyTopics: v.optional(
+      v.array(
+        v.object({
+          // Extracted key topics
+          topic: v.string(),
+          relevance: v.number(),
+          timestamps: v.array(v.string()),
+        })
+      )
+    ),
   })
     .index("by_video_id", ["videoId"])
     .index("by_user_id", ["userId"])
@@ -89,38 +104,44 @@ export default defineSchema({
     // Identification
     userId: v.string(),
     videoId: v.string(),
-    
+
     // Storage
-    storageId: v.id("_storage"),             // Convex file storage ID
-    fileName: v.optional(v.string()),        // Original filename
-    fileSize: v.optional(v.number()),        // File size in bytes
-    
+    storageId: v.id("_storage"), // Convex file storage ID
+    fileName: v.optional(v.string()), // Original filename
+    fileSize: v.optional(v.number()), // File size in bytes
+
     // Image Metadata
-    imageType: v.optional(v.union(           // Type of generated image
-      v.literal("thumbnail"),
-      v.literal("cover"),
-      v.literal("social_media"),
-      v.literal("custom")
-    )),
-    dimensions: v.optional(v.object({        // Image dimensions
-      width: v.number(),
-      height: v.number(),
-    })),
-    
+    imageType: v.optional(
+      v.union(
+        // Type of generated image
+        v.literal("thumbnail"),
+        v.literal("cover"),
+        v.literal("social_media"),
+        v.literal("custom")
+      )
+    ),
+    dimensions: v.optional(
+      v.object({
+        // Image dimensions
+        width: v.number(),
+        height: v.number(),
+      })
+    ),
+
     // Generation Details
-    prompt: v.optional(v.string()),          // AI prompt used for generation
-    model: v.optional(v.string()),           // AI model used (dall-e-3, etc.)
-    style: v.optional(v.string()),           // Style parameters
-    quality: v.optional(v.string()),         // Quality setting
-    
+    prompt: v.optional(v.string()), // AI prompt used for generation
+    model: v.optional(v.string()), // AI model used (dall-e-3, etc.)
+    style: v.optional(v.string()), // Style parameters
+    quality: v.optional(v.string()), // Quality setting
+
     // Metadata
-    generatedAt: v.optional(v.number()),     // Timestamp of generation
-    isActive: v.optional(v.boolean()),       // Currently active/selected
-    downloadCount: v.optional(v.number()),   // How many times downloaded
-    
+    generatedAt: v.optional(v.number()), // Timestamp of generation
+    isActive: v.optional(v.boolean()), // Currently active/selected
+    downloadCount: v.optional(v.number()), // How many times downloaded
+
     // User Interaction
-    rating: v.optional(v.number()),          // User rating (1-5)
-    feedback: v.optional(v.string()),        // User feedback
+    rating: v.optional(v.number()), // User rating (1-5)
+    feedback: v.optional(v.string()), // User feedback
   })
     .index("by_user_id", ["userId"])
     .index("by_video_id", ["videoId"])
@@ -133,40 +154,46 @@ export default defineSchema({
     // Identification
     userId: v.string(),
     videoId: v.string(),
-    
+
     // Title Content
     title: v.string(),
-    titleType: v.optional(v.union(           // Type of title
-      v.literal("seo_optimized"),
-      v.literal("clickbait"),
-      v.literal("descriptive"),
-      v.literal("branded"),
-      v.literal("question"),
-      v.literal("custom")
-    )),
-    
+    titleType: v.optional(
+      v.union(
+        // Type of title
+        v.literal("seo_optimized"),
+        v.literal("clickbait"),
+        v.literal("descriptive"),
+        v.literal("branded"),
+        v.literal("question"),
+        v.literal("custom")
+      )
+    ),
+
     // SEO & Analytics
     targetKeywords: v.optional(v.array(v.string())), // Target keywords
-    estimatedCTR: v.optional(v.number()),    // Estimated click-through rate
+    estimatedCTR: v.optional(v.number()), // Estimated click-through rate
     competitionLevel: v.optional(v.string()), // Keyword competition level
-    
+
     // Generation Details
-    prompt: v.optional(v.string()),          // AI prompt used
-    model: v.optional(v.string()),           // AI model used
-    generatedAt: v.optional(v.number()),     // Generation timestamp
-    
+    prompt: v.optional(v.string()), // AI prompt used
+    model: v.optional(v.string()), // AI model used
+    generatedAt: v.optional(v.number()), // Generation timestamp
+
     // User Interaction
-    isSelected: v.optional(v.boolean()),     // Currently selected title
-    performance: v.optional(v.object({       // Performance tracking
-      views: v.optional(v.number()),
-      clicks: v.optional(v.number()),
-      ctr: v.optional(v.number()),
-    })),
-    
+    isSelected: v.optional(v.boolean()), // Currently selected title
+    performance: v.optional(
+      v.object({
+        // Performance tracking
+        views: v.optional(v.number()),
+        clicks: v.optional(v.number()),
+        ctr: v.optional(v.number()),
+      })
+    ),
+
     // Metadata
-    version: v.optional(v.string()),         // Version tracking
-    rating: v.optional(v.number()),          // User rating
-    notes: v.optional(v.string()),           // User notes
+    version: v.optional(v.string()), // Version tracking
+    rating: v.optional(v.number()), // User rating
+    notes: v.optional(v.string()), // User notes
   })
     .index("by_video_id", ["videoId"])
     .index("by_user_id", ["userId"])
@@ -179,27 +206,30 @@ export default defineSchema({
     videoId: v.string(),
     userId: v.string(),
     script: v.string(),
-    
+
     // Title Integration
-    scriptTitle: v.string(),                    // Human-readable script name
-    videoTitle: v.optional(v.string()),         // Original video title
-    generatedTitle: v.optional(v.string()),     // AI-generated title (if exists)
-    titleSource: v.union(                       // Where title came from
+    scriptTitle: v.string(), // Human-readable script name
+    videoTitle: v.optional(v.string()), // Original video title
+    generatedTitle: v.optional(v.string()), // AI-generated title (if exists)
+    titleSource: v.union(
+      // Where title came from
       v.literal("original_video"),
-      v.literal("ai_generated"), 
+      v.literal("ai_generated"),
       v.literal("user_defined"),
       v.literal("auto_generated")
     ),
-    
+
     // Enhanced Metadata
-    scriptType: v.optional(v.union(
-      v.literal("tutorial"),
-      v.literal("marketing"),
-      v.literal("entertainment"),
-      v.literal("educational"),
-      v.literal("general")
-    )),
-    
+    scriptType: v.optional(
+      v.union(
+        v.literal("tutorial"),
+        v.literal("marketing"),
+        v.literal("entertainment"),
+        v.literal("educational"),
+        v.literal("general")
+      )
+    ),
+
     // Timestamps
     createdAt: v.number(),
     updatedAt: v.optional(v.number()),
@@ -215,10 +245,11 @@ export default defineSchema({
     scriptId: v.id("scripts"),
     userId: v.string(),
     videoId: v.string(),
-    sceneIndex: v.number(),         // Order in the storyboard
-    sceneContent: v.string(),       // The actual scene text/script
-    sceneName: v.string(),          // Short descriptive name
-    contentType: v.union(           // Type of scene content
+    sceneIndex: v.number(), // Order in the storyboard
+    sceneContent: v.string(), // The actual scene text/script
+    sceneName: v.string(), // Short descriptive name
+    contentType: v.union(
+      // Type of scene content
       v.literal("intro"),
       v.literal("action"),
       v.literal("dialogue"),
@@ -231,7 +262,7 @@ export default defineSchema({
     imageId: v.optional(v.id("_storage")), // Generated image for this scene
     voiceoverId: v.optional(v.id("voiceovers")), // Related voiceover if exists
     duration: v.optional(v.number()), // Estimated duration in seconds
-    notes: v.optional(v.string()),  // Additional production notes
+    notes: v.optional(v.string()), // Additional production notes
     createdAt: v.number(),
   })
     .index("by_script_id", ["scriptId"])
@@ -245,11 +276,20 @@ export default defineSchema({
     sceneId: v.optional(v.id("storyboard_scenes")), // Can be for a specific scene or entire script
     userId: v.string(),
     videoId: v.string(),
-    storageId: v.id("_storage"),  // Audio file storage ID
-    voiceName: v.string(),        // Name of the voice used
-    voiceProvider: v.string(),    // ElevenLabs or other provider
+    storageId: v.optional(v.id("_storage")), // Audio file storage ID (optional until processing completes)
+    voiceName: v.string(), // Name of the voice used
+    voiceProvider: v.string(), // ElevenLabs or other provider
     duration: v.optional(v.number()), // Duration in seconds
-    text: v.string(),             // Text that was converted to speech
+    text: v.string(), // Text that was converted to speech
+    status: v.optional(
+      v.union(
+        // Processing status
+        v.literal("processing"),
+        v.literal("completed"),
+        v.literal("failed")
+      )
+    ),
+    errorMessage: v.optional(v.string()), // Error message if status is failed
     createdAt: v.number(),
   })
     .index("by_script_id", ["scriptId"])
@@ -260,45 +300,57 @@ export default defineSchema({
   chatHistory: defineTable({
     // Identification
     userId: v.string(),
-    videoId: v.optional(v.string()),         // Optional: chat might be general
-    sessionId: v.string(),                   // Chat session identifier
-    
+    videoId: v.optional(v.string()), // Optional: chat might be general
+    sessionId: v.string(), // Chat session identifier
+
     // Message Content
-    messages: v.array(v.object({
-      id: v.string(),
-      role: v.union(v.literal("user"), v.literal("assistant")),
-      content: v.string(),
-      timestamp: v.number(),
-      
-      // Tool Usage (for assistant messages)
-      toolCalls: v.optional(v.array(v.object({
-        toolName: v.string(),
-        parameters: v.optional(v.any()),
-        result: v.optional(v.any()),
-        executionTime: v.optional(v.number()),
-      }))),
-      
-      // Metadata
-      model: v.optional(v.string()),         // AI model used
-      tokens: v.optional(v.object({         // Token usage
-        input: v.number(),
-        output: v.number(),
-        total: v.number(),
-      })),
-    })),
-    
+    messages: v.array(
+      v.object({
+        id: v.string(),
+        role: v.union(v.literal("user"), v.literal("assistant")),
+        content: v.string(),
+        timestamp: v.number(),
+
+        // Tool Usage (for assistant messages)
+        toolCalls: v.optional(
+          v.array(
+            v.object({
+              toolName: v.string(),
+              parameters: v.optional(v.any()),
+              result: v.optional(v.any()),
+              executionTime: v.optional(v.number()),
+            })
+          )
+        ),
+
+        // Metadata
+        model: v.optional(v.string()), // AI model used
+        tokens: v.optional(
+          v.object({
+            // Token usage
+            input: v.number(),
+            output: v.number(),
+            total: v.number(),
+          })
+        ),
+      })
+    ),
+
     // Session Metadata
     startedAt: v.number(),
     lastMessageAt: v.number(),
     isActive: v.boolean(),
-    
+
     // Context & Settings
-    context: v.optional(v.object({          // Chat context
-      videoTitle: v.optional(v.string()),
-      analysisData: v.optional(v.any()),
-      userPreferences: v.optional(v.any()),
-    })),
-    
+    context: v.optional(
+      v.object({
+        // Chat context
+        videoTitle: v.optional(v.string()),
+        analysisData: v.optional(v.any()),
+        userPreferences: v.optional(v.any()),
+      })
+    ),
+
     // Analytics
     totalMessages: v.number(),
     totalTokens: v.optional(v.number()),
@@ -314,15 +366,15 @@ export default defineSchema({
   userAnalytics: defineTable({
     // Identification
     userId: v.string(),
-    date: v.string(),                        // YYYY-MM-DD format
-    
+    date: v.string(), // YYYY-MM-DD format
+
     // Usage Metrics
     videosAnalyzed: v.number(),
     imagesGenerated: v.number(),
     titlesGenerated: v.number(),
     scriptsGenerated: v.number(),
     chatMessages: v.number(),
-    
+
     // Feature Usage
     featureUsage: v.object({
       transcription: v.number(),
@@ -331,21 +383,21 @@ export default defineSchema({
       scriptGeneration: v.number(),
       chatInteractions: v.number(),
     }),
-    
+
     // Subscription & Billing
     subscriptionTier: v.optional(v.string()),
     tokensUsed: v.optional(v.number()),
     creditsRemaining: v.optional(v.number()),
-    
+
     // Performance Metrics
     avgProcessingTime: v.optional(v.number()),
     successfulOperations: v.number(),
     failedOperations: v.number(),
-    
+
     // Engagement
     sessionDuration: v.optional(v.number()),
     pageViews: v.optional(v.number()),
-    
+
     // Metadata
     updatedAt: v.number(),
   })

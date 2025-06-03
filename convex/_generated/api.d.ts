@@ -20,6 +20,7 @@ import type * as storyboard from "../storyboard.js";
 import type * as titles from "../titles.js";
 import type * as transcript from "../transcript.js";
 import type * as userAnalytics from "../userAnalytics.js";
+import type * as utils from "../utils.js";
 import type * as videos from "../videos.js";
 import type * as voiceover from "../voiceover.js";
 
@@ -39,6 +40,7 @@ declare const fullApi: ApiFromModules<{
   titles: typeof titles;
   transcript: typeof transcript;
   userAnalytics: typeof userAnalytics;
+  utils: typeof utils;
   videos: typeof videos;
   voiceover: typeof voiceover;
 }>;
