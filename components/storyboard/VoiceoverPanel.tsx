@@ -324,7 +324,6 @@ function VoiceoverPanel({ sceneId, scriptId, videoId }: VoiceoverPanelProps) {
                   </div>
                 </div>
               )}
-
               {/* Error Status */}
               {voiceover.status === "failed" && (
                 <div className="border rounded-md p-3 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300">
@@ -348,7 +347,6 @@ function VoiceoverPanel({ sceneId, scriptId, videoId }: VoiceoverPanelProps) {
                   </Button>
                 </div>
               )}
-
               {/* Completed Status with Audio Player */}
               {voiceover.status === "completed" && (
                 <div className="border rounded-md p-3 bg-gray-50 dark:bg-gray-800/50">
@@ -412,7 +410,6 @@ function VoiceoverPanel({ sceneId, scriptId, videoId }: VoiceoverPanelProps) {
                   )}
                 </div>
               )}
-
               {/* Regenerate Button */}
               {voiceover.status === "completed" && (
                 <Button
