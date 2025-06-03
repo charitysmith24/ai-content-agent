@@ -436,8 +436,12 @@ export const processVoiceover = internalAction({
         );
 
         // Create a Blob directly from the ArrayBuffer without using Buffer
-        const audioBlob = new Blob([new Uint8Array(audioArrayBuffer)]);
-        console.log(`Created audio blob of size: ${audioBlob.size} bytes`);
+        const audioBlob = new Blob([new Uint8Array(audioArrayBuffer)], {
+          type: "audio/mpeg",
+        });
+        console.log(
+          `Created audio blob of size: ${audioBlob.size} bytes with type: ${audioBlob.type}`
+        );
 
         // Calculate duration (approximate based on character count)
         // In a real implementation, you would get actual duration from audio metadata
@@ -455,9 +459,29 @@ export const processVoiceover = internalAction({
         // Verify we can generate a URL from the storage ID
         try {
           const url = await ctx.storage.getUrl(storageId);
-          console.log(
-            `Successfully generated URL for storage ID: ${url ? url.substring(0, 100) : "undefined"}...`
-          );
+          // Check if URL exists before using it
+          if (url) {
+            console.log(
+              `Successfully generated URL for storage ID: ${url.substring(0, 100)}...`
+            );
+
+            // Test the URL to ensure it's accessible
+            try {
+              const testResponse = await fetch(url, { method: "HEAD" });
+              console.log(
+                `URL accessibility test: ${testResponse.status} - ${testResponse.statusText}`
+              );
+              console.log(
+                `Content-Type from storage: ${testResponse.headers.get("content-type")}`
+              );
+            } catch (fetchError) {
+              console.error(
+                `Error testing URL accessibility: ${formatError(fetchError)}`
+              );
+            }
+          } else {
+            console.error("Storage URL is null - this shouldn't happen");
+          }
         } catch (urlError) {
           console.error(
             `Error generating URL for storage ID: ${formatError(urlError)}`
