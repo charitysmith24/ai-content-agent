@@ -69,6 +69,7 @@ export const debugVoiceover = query({
     if (hasStorageId) {
       try {
         url = await ctx.storage.getUrl(voiceover.storageId as Id<"_storage">);
+        console.log("VIDEO URL", url);
       } catch (error) {
         urlError = formatError(error, "Error getting URL");
       }
@@ -111,7 +112,7 @@ export const getVoiceovers = query({
       voiceovers.map(async (voiceover) => ({
         ...voiceover,
         url: voiceover.storageId
-          ? await ctx.storage.getUrl(voiceover.storageId)
+          ? await ctx.storage.getUrl(voiceover.storageId as Id<"_storage">)
           : null,
       }))
     );
@@ -141,10 +142,11 @@ export const getSceneVoiceover = query({
     const voiceoverWithUrl = {
       ...voiceover,
       url: voiceover.storageId
-        ? await ctx.storage.getUrl(voiceover.storageId)
+        ? await ctx.storage.getUrl(voiceover.storageId as Id<"_storage">)
         : null,
     };
 
+    console.log("VOICEOVER WITH URL", voiceoverWithUrl);
     return voiceoverWithUrl;
   },
 });
@@ -266,7 +268,7 @@ export const deleteVoiceover = mutation({
     if (voiceover) {
       // Delete the audio file from storage
       if (voiceover.storageId) {
-        await ctx.storage.delete(voiceover.storageId);
+        await ctx.storage.delete(voiceover.storageId as Id<"_storage">);
       }
 
       // If this voiceover is linked to a scene, update the scene to remove the reference
