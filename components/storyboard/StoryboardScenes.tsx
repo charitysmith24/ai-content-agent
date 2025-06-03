@@ -4,7 +4,13 @@ import { useUser } from "@clerk/nextjs";
 import { api } from "@/convex/_generated/api";
 import { useQuery, useMutation } from "convex/react";
 import { Id } from "@/convex/_generated/dataModel";
-import { PlusCircle, Layers, MessageSquare, Workflow, ChevronRight } from "lucide-react";
+import {
+  PlusCircle,
+  Layers,
+  MessageSquare,
+  Workflow,
+  ChevronRight,
+} from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -36,49 +42,59 @@ interface Scene {
   createdAt: number;
 }
 
-function StoryboardScenes({ scriptId, selectedSceneId, onSelectScene }: StoryboardScenesProps) {
+function StoryboardScenes({
+  scriptId,
+  selectedSceneId,
+  onSelectScene,
+}: StoryboardScenesProps) {
   const { user } = useUser();
   const [isGenerating, setIsGenerating] = useState(false);
-  
+
   // Use STORYBOARD_WORKSPACE feature flag for overall storyboard functionality
   // This controls scene generation from scripts
   const { value: isStoryboardEnabled } = useSchematicEntitlement(
     FeatureFlag.STORYBOARD_WORKSPACE
   );
-  
+
   // Use the proper API references now that they're registered
-  const parseScriptIntoScenes = useMutation(api.storyboard.parseScriptIntoScenes);
-  
+  const parseScriptIntoScenes = useMutation(
+    api.storyboard.parseScriptIntoScenes
+  );
+
   // Query to get scenes
   const scenes = useQuery(
     api.storyboard.getScenes,
-    scriptId ? {
-      scriptId: scriptId as Id<"scripts">,
-      userId: user?.id ?? ""
-    } : "skip"
+    scriptId
+      ? {
+          scriptId: scriptId as Id<"scripts">,
+          userId: user?.id ?? "",
+        }
+      : "skip"
   );
-  
+
   // Query to get script details
   const scriptDetails = useQuery(
     api.scripts.getScriptById,
-    scriptId ? {
-      scriptId: scriptId as Id<"scripts">,
-      userId: user?.id ?? ""
-    } : "skip"
+    scriptId
+      ? {
+          scriptId: scriptId as Id<"scripts">,
+          userId: user?.id ?? "",
+        }
+      : "skip"
   );
 
   const generateStoryboard = async () => {
     if (!scriptId || !user?.id || !scriptDetails) return;
-    
+
     try {
       setIsGenerating(true);
-      
+
       await parseScriptIntoScenes({
         scriptId: scriptId as Id<"scripts">,
         userId: user.id,
         videoId: scriptDetails.videoId,
       });
-      
+
       toast.success("Script parsed into scenes");
     } catch (error) {
       console.error(error);
@@ -121,18 +137,9 @@ function StoryboardScenes({ scriptId, selectedSceneId, onSelectScene }: Storyboa
   return (
     <div className="flex flex-col h-full">
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Storyboard</h2>
-        
-        {scriptId && (
-          <Button 
-            size="sm" 
-            onClick={generateStoryboard} 
-            disabled={isGenerating || !isStoryboardEnabled || !scriptId || !scriptDetails}
-            className="text-xs"
-          >
-            {isGenerating ? "Generating..." : "Generate Scenes"}
-          </Button>
-        )}
+        <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+          Storyboard
+        </h2>
       </div>
 
       {!scriptId && (
@@ -150,8 +157,8 @@ function StoryboardScenes({ scriptId, selectedSceneId, onSelectScene }: Storyboa
           <p className="text-gray-500 dark:text-gray-400 text-center mb-4">
             No scenes generated yet. Parse your script to create scenes.
           </p>
-          <Button 
-            onClick={generateStoryboard} 
+          <Button
+            onClick={generateStoryboard}
             disabled={isGenerating || !isStoryboardEnabled || !scriptDetails}
           >
             {isGenerating ? "Generating..." : "Generate Storyboard"}
@@ -160,7 +167,7 @@ function StoryboardScenes({ scriptId, selectedSceneId, onSelectScene }: Storyboa
       )}
 
       {scenes && scenes.length > 0 && (
-        <div className="space-y-3 overflow-y-auto max-h-[600px] pr-4">
+        <div className="space-y-3 overflow-y-auto max-h-[735px] pr-4">
           {scenes.map((scene) => (
             <div
               key={scene._id}
@@ -172,7 +179,9 @@ function StoryboardScenes({ scriptId, selectedSceneId, onSelectScene }: Storyboa
               }`}
             >
               <div className="flex items-start gap-3">
-                <div className={`shrink-0 p-2 rounded-md ${getContentTypeColor(scene.contentType)}`}>
+                <div
+                  className={`shrink-0 p-2 rounded-md ${getContentTypeColor(scene.contentType)}`}
+                >
                   {getContentTypeIcon(scene.contentType)}
                 </div>
                 <div className="min-w-0 flex-1">
@@ -184,12 +193,12 @@ function StoryboardScenes({ scriptId, selectedSceneId, onSelectScene }: Storyboa
                       {scene.sceneIndex + 1}
                     </span>
                   </div>
-                  
+
                   {/* Content preview */}
                   <p className="mt-2 text-xs text-gray-600 dark:text-gray-300 line-clamp-3">
                     {scene.sceneContent}
                   </p>
-                  
+
                   {/* Metadata */}
                   {scene.emotion && (
                     <div className="mt-2">
@@ -200,7 +209,7 @@ function StoryboardScenes({ scriptId, selectedSceneId, onSelectScene }: Storyboa
                   )}
                 </div>
               </div>
-              
+
               {/* Show image thumbnail if available */}
               {scene.imageId && (
                 <div className="mt-2 h-16 bg-gray-100 dark:bg-gray-800 rounded overflow-hidden">
@@ -218,4 +227,4 @@ function StoryboardScenes({ scriptId, selectedSceneId, onSelectScene }: Storyboa
   );
 }
 
-export default StoryboardScenes; 
+export default StoryboardScenes;

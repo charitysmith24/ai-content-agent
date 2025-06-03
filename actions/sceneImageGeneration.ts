@@ -10,15 +10,15 @@ import { Id } from "@/convex/_generated/dataModel";
 
 // Using GPT-Image-1 for storyboard scene image generation
 // This model is preferred for detailed scene images with precise control over visual elements
-const IMAGE_SIZE = "1024x1024" as const; // Supported: "1024x1024", "1024x1536", "1536x1024", or "auto"
+const IMAGE_SIZE = "1536x1024" as const; // Supported: "1024x1024", "1024x1536", "1536x1024", or "auto"
 const convexClient = getConvexClient();
 
 /**
  * Generate a detailed scene image using OpenAI's GPT-Image-1 model
- * 
+ *
  * This action is specifically for generating storyboard scene images and is gated by
  * the SCENE_IMAGE_GENERATION feature flag (different from thumbnail generation).
- * 
+ *
  * The scene images include more context like emotional tone and visual elements
  * to create a more accurate representation of the scene.
  */
@@ -63,16 +63,17 @@ export const sceneImageGeneration = async (
 
     // Construct a more detailed prompt for scene visualization
     let detailedPrompt = `Create a vivid, cinematic image for the following scene from a video storyboard:\n\n${sceneContent}`;
-    
+
     if (emotion) {
       detailedPrompt += `\n\nThe emotional tone should be: ${emotion}`;
     }
-    
+
     if (visualElements && visualElements.length > 0) {
       detailedPrompt += `\n\nImportant visual elements to include: ${visualElements.join(", ")}`;
     }
-    
-    detailedPrompt += "\n\nCreate a high-quality, professional image suitable for a video production storyboard. Use realistic style with good lighting and composition.";
+
+    detailedPrompt +=
+      "\n\nCreate a high-quality, professional image suitable for a video production storyboard. Use realistic style with good lighting and composition.";
 
     console.log("🎨 Generating scene image with prompt:", detailedPrompt);
 
@@ -91,14 +92,16 @@ export const sceneImageGeneration = async (
 
     // Handle base64 response (default for gpt-image-1)
     const imageData = imageResponse.data[0];
-    
+
     if (!imageData.b64_json) {
-      throw new Error("Expected base64 image data but received different format");
+      throw new Error(
+        "Expected base64 image data but received different format"
+      );
     }
 
     console.log("📥 Processing base64 image data...");
-    const imageBytes = Buffer.from(imageData.b64_json, 'base64');
-    const imageBlob = new Blob([imageBytes], { type: 'image/png' });
+    const imageBytes = Buffer.from(imageData.b64_json, "base64");
+    const imageBlob = new Blob([imageBytes], { type: "image/png" });
 
     // Step 1: Get a short-lived upload URL for Convex
     console.log("📤 Getting upload URL...");
@@ -150,8 +153,8 @@ export const sceneImageGeneration = async (
       videoId,
       userId: user.id,
       error: error instanceof Error ? error.message : "Unknown error",
-      stack: error instanceof Error ? error.stack : undefined
+      stack: error instanceof Error ? error.stack : undefined,
     });
     throw error;
   }
-}; 
+};

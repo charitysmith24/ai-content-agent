@@ -11,9 +11,9 @@ import { toast } from "sonner";
 
 function ScriptGeneration({ videoId }: { videoId: string }) {
   const { user } = useUser();
-  const scripts = useQuery(api.scripts.getScripts, { 
-    videoId, 
-    userId: user?.id ?? "" 
+  const scripts = useQuery(api.scripts.getScripts, {
+    videoId,
+    userId: user?.id ?? "",
   });
 
   const { value: isScriptGenerationEnabled } = useSchematicEntitlement(
@@ -66,8 +66,8 @@ function ScriptGeneration({ videoId }: { videoId: string }) {
     <div className="rounded-xl flex flex-col">
       <div className="min-w-52">
         <Usage
-          featureFlag={FeatureFlag.SCRIPT_GENERATION}
-          title="Script Generation"
+          featureFlag={FeatureFlag.SCRIPTS_GENERATION}
+          title="Scripts Generation"
         />
       </div>
 
@@ -87,7 +87,9 @@ function ScriptGeneration({ videoId }: { videoId: string }) {
                 <div className="flex items-center gap-2 mt-1">
                   {/* Script Type Badge */}
                   {script.scriptType && (
-                    <span className={`inline-flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-full ${getScriptTypeColor(script.scriptType)}`}>
+                    <span
+                      className={`inline-flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-full ${getScriptTypeColor(script.scriptType)}`}
+                    >
                       <Tag className="size-3" />
                       {script.scriptType}
                     </span>
@@ -95,9 +97,13 @@ function ScriptGeneration({ videoId }: { videoId: string }) {
                   {/* Title Source */}
                   <span className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1">
                     {getTitleSourceIcon(script.titleSource)}
-                    {script.titleSource === "ai_generated" ? "AI Title" : 
-                     script.titleSource === "original_video" ? "Original" : 
-                     script.titleSource === "user_defined" ? "Custom" : "Auto"}
+                    {script.titleSource === "ai_generated"
+                      ? "AI Title"
+                      : script.titleSource === "original_video"
+                        ? "Original"
+                        : script.titleSource === "user_defined"
+                          ? "Custom"
+                          : "Auto"}
                   </span>
                 </div>
               </div>

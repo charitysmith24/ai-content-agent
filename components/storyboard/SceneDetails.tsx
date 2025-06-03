@@ -44,7 +44,14 @@ import { sceneImageGeneration } from "@/actions/sceneImageGeneration";
 const formSchema = z.object({
   sceneName: z.string().min(1, { message: "Name is required" }),
   sceneContent: z.string().min(1, { message: "Content is required" }),
-  contentType: z.enum(["intro", "action", "dialogue", "transition", "outro", "other"]),
+  contentType: z.enum([
+    "intro",
+    "action",
+    "dialogue",
+    "transition",
+    "outro",
+    "other",
+  ]),
   emotion: z.string().optional(),
   notes: z.string().optional(),
 });
@@ -64,7 +71,13 @@ type Scene = {
   sceneIndex: number;
   sceneContent: string;
   sceneName: string;
-  contentType: "intro" | "action" | "dialogue" | "transition" | "outro" | "other";
+  contentType:
+    | "intro"
+    | "action"
+    | "dialogue"
+    | "transition"
+    | "outro"
+    | "other";
   emotion?: string;
   visualElements?: string[];
   imageId?: Id<"_storage">;
@@ -72,36 +85,40 @@ type Scene = {
   duration?: number;
   notes?: string;
   createdAt: number;
-}
+};
 
 function SceneDetails({ sceneId, scriptId, videoId }: SceneDetailsProps) {
   const { user } = useUser();
   const [isGeneratingImage, setIsGeneratingImage] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
-  
+
   // Use the SCENE_IMAGE_GENERATION feature flag
   const { value: isSceneImageGenerationEnabled } = useSchematicEntitlement(
     FeatureFlag.SCENE_IMAGE_GENERATION
   );
-  
+
   // Use the proper API references
   const scenes = useQuery(
     api.storyboard.getScenes,
-    sceneId && scriptId ? {
-      scriptId: scriptId as Id<"scripts">,
-      userId: user?.id ?? ""
-    } : "skip"
+    sceneId && scriptId
+      ? {
+          scriptId: scriptId as Id<"scripts">,
+          userId: user?.id ?? "",
+        }
+      : "skip"
   );
-  
-  const scene = scenes?.find(s => s._id === sceneId);
-  
+
+  const scene = scenes?.find((s) => s._id === sceneId);
+
   // Get image URL if scene has an imageId
   useEffect(() => {
     if (scene?.imageId && user?.id) {
       const getImageUrl = async () => {
         try {
-          const url = await fetch(`/api/get-image-url?storageId=${scene.imageId}&userId=${user.id}`);
+          const url = await fetch(
+            `/api/get-image-url?storageId=${scene.imageId}&userId=${user.id}`
+          );
           const data = await url.json();
           if (data.url) {
             setImageUrl(data.url);
@@ -110,24 +127,31 @@ function SceneDetails({ sceneId, scriptId, videoId }: SceneDetailsProps) {
           console.error("Error fetching image URL:", error);
         }
       };
-      
+
       getImageUrl();
     } else {
       setImageUrl(null);
     }
   }, [scene?.imageId, user?.id]);
-  
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       sceneName: scene?.sceneName || "",
       sceneContent: scene?.sceneContent || "",
-      contentType: (scene?.contentType as "intro" | "action" | "dialogue" | "transition" | "outro" | "other") || "action",
+      contentType:
+        (scene?.contentType as
+          | "intro"
+          | "action"
+          | "dialogue"
+          | "transition"
+          | "outro"
+          | "other") || "action",
       emotion: scene?.emotion || "",
       notes: scene?.notes || "",
     },
   });
-  
+
   // Update form values when scene changes
   useEffect(() => {
     if (scene) {
@@ -140,20 +164,20 @@ function SceneDetails({ sceneId, scriptId, videoId }: SceneDetailsProps) {
       });
     }
   }, [scene, form]);
-  
+
   // Use the proper API references
   const updateScene = useMutation(api.storyboard.updateScene);
-  
+
   const handleGenerateImage = async () => {
     if (!sceneId || !user?.id || !scene) return;
-    
+
     try {
       setIsGeneratingImage(true);
       toast.info("Image generation started", {
         description: "This may take a few moments...",
         duration: 3000,
       });
-      
+
       const result = await sceneImageGeneration(
         sceneId as string,
         scene.sceneContent,
@@ -161,7 +185,7 @@ function SceneDetails({ sceneId, scriptId, videoId }: SceneDetailsProps) {
         scene.visualElements,
         videoId
       );
-      
+
       if (result.success) {
         toast.success("Image generated successfully");
         // The scene will be updated via Convex, and the image will load
@@ -169,16 +193,17 @@ function SceneDetails({ sceneId, scriptId, videoId }: SceneDetailsProps) {
     } catch (error) {
       console.error(error);
       toast.error("Error generating image", {
-        description: error instanceof Error ? error.message : "Unknown error occurred",
+        description:
+          error instanceof Error ? error.message : "Unknown error occurred",
       });
     } finally {
       setIsGeneratingImage(false);
     }
   };
-  
+
   const onSubmit = async (data: z.infer<typeof formSchema>) => {
     if (!sceneId) return;
-    
+
     try {
       await updateScene({
         sceneId: sceneId as Id<"storyboard_scenes">,
@@ -188,7 +213,7 @@ function SceneDetails({ sceneId, scriptId, videoId }: SceneDetailsProps) {
         emotion: data.emotion || undefined,
         notes: data.notes || undefined,
       });
-      
+
       toast.success("Scene updated successfully");
       setIsEditing(false);
     } catch (error) {
@@ -211,20 +236,22 @@ function SceneDetails({ sceneId, scriptId, videoId }: SceneDetailsProps) {
   return (
     <div className="flex flex-col h-full">
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Scene Details</h2>
-        
+        <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+          Scene Details
+        </h2>
+
         <div className="flex gap-2">
-          <Button 
-            size="sm" 
+          <Button
+            size="sm"
             variant="outline"
             onClick={() => setIsEditing(true)}
           >
             <Pencil className="h-4 w-4 mr-1" />
             Edit
           </Button>
-          
-          <Button 
-            size="sm" 
+
+          <Button
+            size="sm"
             onClick={handleGenerateImage}
             disabled={isGeneratingImage || !isSceneImageGenerationEnabled}
           >
@@ -241,15 +268,19 @@ function SceneDetails({ sceneId, scriptId, videoId }: SceneDetailsProps) {
       {/* Scene Content View */}
       <div className="space-y-4">
         {/* Image */}
-        <div className="aspect-video bg-gray-100 dark:bg-gray-800 rounded-lg flex items-center justify-center overflow-hidden">
+        <div className="h-80 bg-gray-100 dark:bg-gray-800 rounded-lg flex items-center justify-center overflow-hidden">
           {imageUrl ? (
-            <div className="relative w-full h-full">
-              <Image
-                src={imageUrl}
-                alt={scene.sceneName}
-                fill
-                className="object-contain"
-              />
+            <div className="relative w-full h-full flex items-center justify-center">
+              <div className="relative w-full h-full max-w-full max-h-full">
+                <Image
+                  src={imageUrl}
+                  alt={scene.sceneName}
+                  fill
+                  className="object-contain"
+                  sizes="(max-width: 768px) 100vw, 50vw"
+                  priority
+                />
+              </div>
             </div>
           ) : scene.imageId ? (
             <div className="text-center p-4">
@@ -260,11 +291,13 @@ function SceneDetails({ sceneId, scriptId, videoId }: SceneDetailsProps) {
             <div className="text-center p-4">
               <ImageIcon className="h-8 w-8 mx-auto text-gray-400 mb-2" />
               <p className="text-sm text-gray-500">No image generated yet</p>
-              <p className="text-xs text-gray-400 mt-1">Click &quot;Generate Image&quot; to create one</p>
+              <p className="text-xs text-gray-400 mt-1">
+                Click &quot;Generate Image&quot; to create one
+              </p>
             </div>
           )}
         </div>
-        
+
         {/* Scene Info */}
         <div className="space-y-2">
           <div>
@@ -272,35 +305,44 @@ function SceneDetails({ sceneId, scriptId, videoId }: SceneDetailsProps) {
               {scene.sceneName}
             </h3>
             <div className="mt-1 flex items-center">
-              <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
-                scene.contentType === "intro" ? "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300" :
-                scene.contentType === "dialogue" ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300" :
-                scene.contentType === "transition" ? "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300" :
-                scene.contentType === "outro" ? "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300" :
-                "bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-300"
-              }`}>
-                {scene.contentType.charAt(0).toUpperCase() + scene.contentType.slice(1)}
+              <span
+                className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
+                  scene.contentType === "intro"
+                    ? "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300"
+                    : scene.contentType === "dialogue"
+                      ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300"
+                      : scene.contentType === "transition"
+                        ? "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300"
+                        : scene.contentType === "outro"
+                          ? "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300"
+                          : "bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-300"
+                }`}
+              >
+                {scene.contentType.charAt(0).toUpperCase() +
+                  scene.contentType.slice(1)}
               </span>
-              
+
               {scene.emotion && (
                 <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300">
                   Mood: {scene.emotion}
                 </span>
               )}
-              
+
               <span className="ml-auto text-xs text-gray-500">
                 Scene {scene.sceneIndex + 1}
               </span>
             </div>
           </div>
-          
+
           <div className="text-sm text-gray-600 dark:text-gray-300 whitespace-pre-wrap">
             {scene.sceneContent}
           </div>
-          
+
           {scene.notes && (
             <div className="mt-4">
-              <h4 className="text-xs font-medium text-gray-900 dark:text-white mb-1">Notes</h4>
+              <h4 className="text-xs font-medium text-gray-900 dark:text-white mb-1">
+                Notes
+              </h4>
               <p className="text-xs text-gray-600 dark:text-gray-300 bg-gray-50 dark:bg-gray-800/50 p-2 rounded">
                 {scene.notes}
               </p>
@@ -318,7 +360,7 @@ function SceneDetails({ sceneId, scriptId, videoId }: SceneDetailsProps) {
               Update the details for this scene
             </DialogDescription>
           </DialogHeader>
-          
+
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
               <FormField
@@ -334,7 +376,7 @@ function SceneDetails({ sceneId, scriptId, videoId }: SceneDetailsProps) {
                   </FormItem>
                 )}
               />
-              
+
               <FormField
                 control={form.control}
                 name="sceneContent"
@@ -342,13 +384,17 @@ function SceneDetails({ sceneId, scriptId, videoId }: SceneDetailsProps) {
                   <FormItem>
                     <FormLabel>Scene Content</FormLabel>
                     <FormControl>
-                      <Textarea placeholder="Scene content" {...field} rows={5} />
+                      <Textarea
+                        placeholder="Scene content"
+                        {...field}
+                        rows={5}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-              
+
               <div className="grid grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
@@ -356,7 +402,10 @@ function SceneDetails({ sceneId, scriptId, videoId }: SceneDetailsProps) {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Content Type</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <Select
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                      >
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue placeholder="Select type" />
@@ -375,7 +424,7 @@ function SceneDetails({ sceneId, scriptId, videoId }: SceneDetailsProps) {
                     </FormItem>
                   )}
                 />
-                
+
                 <FormField
                   control={form.control}
                   name="emotion"
@@ -390,7 +439,7 @@ function SceneDetails({ sceneId, scriptId, videoId }: SceneDetailsProps) {
                   )}
                 />
               </div>
-              
+
               <FormField
                 control={form.control}
                 name="notes"
@@ -398,15 +447,23 @@ function SceneDetails({ sceneId, scriptId, videoId }: SceneDetailsProps) {
                   <FormItem>
                     <FormLabel>Notes</FormLabel>
                     <FormControl>
-                      <Textarea placeholder="Production notes" {...field} rows={3} />
+                      <Textarea
+                        placeholder="Production notes"
+                        {...field}
+                        rows={3}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-              
+
               <DialogFooter>
-                <Button type="button" variant="outline" onClick={() => setIsEditing(false)}>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setIsEditing(false)}
+                >
                   Cancel
                 </Button>
                 <Button type="submit">Save Changes</Button>
@@ -419,4 +476,4 @@ function SceneDetails({ sceneId, scriptId, videoId }: SceneDetailsProps) {
   );
 }
 
-export default SceneDetails; 
+export default SceneDetails;
