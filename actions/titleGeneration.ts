@@ -179,7 +179,7 @@ export async function titleGeneration(
     );
 
     const response = await openai.chat.completions.create({
-      model: "gpt-4.1-nano-2025-04-14", // Use specific model version
+      model: "gpt-4o-mini", // Use specific model version
       messages: [
         {
           role: "system",
@@ -295,7 +295,7 @@ export async function generateMultipleTitles(
 
   try {
     const response = await openai.chat.completions.create({
-      model: "gpt-4.1-nano-2025-04-14",
+      model: "gpt-4o-mini", // Use specific model version
       messages: [
         {
           role: "system",

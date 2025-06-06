@@ -11,8 +11,8 @@ interface VideoNavigationProps {
 function VideoNavigation({ videoId }: VideoNavigationProps) {
   const pathname = usePathname();
 
-  const isAnalysisPage = pathname.includes('/analysis');
-  const isStoryboardPage = pathname.includes('/storyboard');
+  const isAnalysisPage = pathname.includes("/analysis");
+  const isStoryboardPage = pathname.includes("/storyboard");
 
   return (
     <div className="flex items-center gap-2 border border-primary/70 dark:border-primary/50 rounded-xl mx-auto p-2 bg-white dark:bg-black/10 mb-4">
@@ -42,4 +42,4 @@ function VideoNavigation({ videoId }: VideoNavigationProps) {
   );
 }
 
-export default VideoNavigation; 
+export default VideoNavigation;

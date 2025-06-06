@@ -71,7 +71,7 @@ function AnalysisPage() {
     );
 
   return (
-    <div className="xl:container mx-auto mb-9 px-4 md:px-0">
+    <div className="container mx-auto mb-9 px-4">
       {/* Video Navigation */}
       <div className="pt-8">
         <VideoNavigation videoId={videoId} />
