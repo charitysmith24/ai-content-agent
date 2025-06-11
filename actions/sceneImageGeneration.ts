@@ -212,7 +212,10 @@ export const sceneImageGeneration = async (
       model: "gpt-image-1",
       prompt: detailedPrompt,
       size: IMAGE_SIZE,
-      quality: "high",
+      moderation: "auto",
+      output_compression: 75,
+      output_format: "webp",
+      quality: "auto",
     });
 
     // Fix the linter error by checking if data exists
