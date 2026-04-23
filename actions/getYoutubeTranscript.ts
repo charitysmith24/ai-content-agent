@@ -5,6 +5,7 @@ import { FeatureFlag, featureFlagEvents } from "@/features/flags";
 import { client } from "@/lib/schematic";
 import { currentUser } from "@clerk/nextjs/server";
 import { ConvexHttpClient } from "convex/browser";
+import { ProxyAgent, fetch as undiciFetch } from "undici";
 import { fetchTranscript as ytFetchTranscript } from "youtube-transcript-plus";
 
 const convex = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
@@ -20,11 +21,71 @@ function formatTimestamp(offsetSeconds: number): string {
   return `${minutes}:${seconds.toString().padStart(2, "0")}`;
 }
 
+// Vercel/cloud datacenter IPs are blocked by YouTube. Route all requests
+// through a Webshare residential proxy when WEBSHARE_PROXY_URL is set.
+// Format: http://<username>:<password>@p.webshare.io:80
+// Falls back to direct fetch in local development when the variable is absent.
+function buildProxyFetch() {
+  const proxyUrl = process.env.WEBSHARE_PROXY_URL;
+  if (!proxyUrl) return {};
+
+  const dispatcher = new ProxyAgent(proxyUrl);
+
+  const proxiedFetch = (
+    url: string,
+    init: Record<string, unknown> = {}
+  ) =>
+    undiciFetch(url, { ...init, dispatcher } as Parameters<
+      typeof undiciFetch
+    >[1]) as unknown as Promise<Response>;
+
+  return {
+    videoFetch: ({ url, lang, userAgent }: { url: string; lang?: string; userAgent?: string }) =>
+      proxiedFetch(url, {
+        headers: {
+          ...(lang && { "Accept-Language": lang }),
+          ...(userAgent && { "User-Agent": userAgent }),
+        },
+      }),
+    playerFetch: ({
+      url,
+      method,
+      body,
+      headers,
+      lang,
+      userAgent,
+    }: {
+      url: string;
+      method?: string;
+      body?: string;
+      headers?: Record<string, string>;
+      lang?: string;
+      userAgent?: string;
+    }) =>
+      proxiedFetch(url, {
+        method,
+        body,
+        headers: {
+          ...headers,
+          ...(lang && { "Accept-Language": lang }),
+          ...(userAgent && { "User-Agent": userAgent }),
+        },
+      }),
+    transcriptFetch: ({ url, lang, userAgent }: { url: string; lang?: string; userAgent?: string }) =>
+      proxiedFetch(url, {
+        headers: {
+          ...(lang && { "Accept-Language": lang }),
+          ...(userAgent && { "User-Agent": userAgent }),
+        },
+      }),
+  };
+}
+
 async function fetchTranscript(videoId: string): Promise<TranscriptEntry[]> {
-  // youtube-transcript-plus bypasses the Innertube /player and /get_transcript
-  // endpoints (both now require BotGuard attestation from a real browser).
-  // It fetches the YouTube page HTML directly and extracts caption track URLs.
-  const segments = await ytFetchTranscript(videoId, { lang: "en" });
+  const segments = await ytFetchTranscript(videoId, {
+    lang: "en",
+    ...buildProxyFetch(),
+  });
 
   return segments.map((segment) => ({
     text: segment.text,

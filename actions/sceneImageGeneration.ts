@@ -141,7 +141,7 @@ export const sceneImageGeneration = async (
                   ],
                 },
               ],
-              max_tokens: 300,
+              max_completion_tokens: 300,
             });
 
             const analysisContent = visionResponse.choices[0]?.message?.content;

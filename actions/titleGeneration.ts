@@ -191,7 +191,7 @@ export async function titleGeneration(
         },
       ],
       temperature: 0.7, // Good balance for creativity
-      max_tokens: 100, // Reduced since we only need one title
+      max_completion_tokens: 100,
       top_p: 0.9, // Good token diversity
       presence_penalty: 0.1, // Slight penalty for repetition
       frequency_penalty: 0.1, // Slight penalty for frequency
@@ -313,7 +313,7 @@ OUTPUT FORMAT: Return exactly ${count} titles, each on a new line, numbered 1-${
         },
       ],
       temperature: 0.8, // Higher creativity for multiple options
-      max_tokens: 300,
+      max_completion_tokens: 300,
     });
 
     const content = response.choices[0]?.message?.content || "";
