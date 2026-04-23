@@ -39,7 +39,7 @@ async function imageUrlToBase64(imageUrl: string): Promise<string> {
 /**
  * Generate a detailed scene image using OpenAI's gpt-image-1.5 model.
  * Gated by the SCENE_IMAGE_GENERATION feature flag (different from thumbnail generation).
- * Vision analysis for reference image consistency uses gpt-5.
+ * Vision analysis for reference image consistency uses gpt-4o.
  */
 export const sceneImageGeneration = async (
   sceneId: string,
@@ -144,8 +144,7 @@ export const sceneImageGeneration = async (
               max_tokens: 300,
             });
 
-            const analysisContent =
-              visionResponse.choices[0]?.message?.content;
+            const analysisContent = visionResponse.choices[0]?.message?.content;
 
             if (!analysisContent) {
               console.warn(
@@ -263,9 +262,7 @@ export const sceneImageGeneration = async (
           method: "POST",
           headers: { "Content-Type": imageBlob.type },
           body: imageBlob,
-          // keepAlive ensures the connection is reused and not dropped
-          // @ts-expect-error — Node.js fetch supports this, types lag behind
-          keepAlive: true,
+          keepalive: true,
         });
         break; // success — exit retry loop
       } catch (uploadErr) {

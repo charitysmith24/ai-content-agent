@@ -388,7 +388,7 @@ export const processVoiceover = internalAction({
 
         console.log(`Calling ElevenLabs API for voice ID: ${voiceId}`);
 
-        // eleven_flash_v2_5 is faster and cheaper; fall back to multilingual v2 for quality
+        // Using eleven_multilingual_v2 for high-quality multilingual support
         const audioStream = await elevenlabs.textToSpeech.convert(voiceId, {
           text: args.text,
           modelId: "eleven_multilingual_v2",
@@ -562,7 +562,9 @@ export const handleVoiceoverCallback = httpAction(async (ctx, request) => {
 
     // Convert base64 to Uint8Array using utility function
     const audioData = base64ToUint8Array(data.audioBase64);
-    const audioBlob = new Blob([audioData.buffer as ArrayBuffer]);
+    const audioBlob = new Blob([audioData as unknown as ArrayBuffer], {
+      type: "audio/mpeg",
+    });
 
     // Upload the audio to Convex storage
     const storageId = await ctx.storage.store(audioBlob);
