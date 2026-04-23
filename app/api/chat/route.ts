@@ -36,7 +36,7 @@ const aj = arcjet({
     shield({ mode: "LIVE" }),
     slidingWindow({
       mode: "LIVE",
-      window: "5m",
+      interval: "5m",
       max: 20,
     }),
   ],
