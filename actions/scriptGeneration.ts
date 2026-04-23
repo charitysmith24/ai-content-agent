@@ -70,7 +70,7 @@ export async function scriptGeneration(
     let response;
     try {
       response = await openai.chat.completions.create({
-        model: "gpt-5-nano",
+        model: "gpt-4o-mini",
         messages: [
           {
             role: "system",
@@ -99,7 +99,6 @@ export async function scriptGeneration(
             Format the script in a clear, production-ready format with scene numbers and timing suggestions.`,
           },
         ],
-        temperature: 0.7,
         max_completion_tokens: 2000,
       });
       console.log("[scriptGeneration] OpenAI API response received");
@@ -108,14 +107,11 @@ export async function scriptGeneration(
       throw new Error(`OpenAI API error: ${(openaiError as Error).message}`);
     }
 
-    const script =
-      response.choices[0]?.message?.content || "Unable to generate script";
+    const script = response.choices[0]?.message?.content?.trim() ?? "";
 
     if (!script) {
-      console.error("[scriptGeneration] Empty script returned from OpenAI");
-      return {
-        error: "Failed to generate script (System error)",
-      };
+      console.error("[scriptGeneration] Empty script returned from OpenAI — finish_reason:", response.choices[0]?.finish_reason);
+      throw new Error("OpenAI returned empty content for script generation");
     }
     console.log("[scriptGeneration] Script generated, length:", script.length);
 

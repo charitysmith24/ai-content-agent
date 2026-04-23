@@ -10,12 +10,19 @@ const fetchTranscript = tool({
       .describe("The ID of the video to fetch the transcript for"),
   }),
   execute: async ({ videoId }) => {
-    const transcript = await getYoutubeTranscript(videoId);
-    console.log("Fetched transcript:", transcript);
-    return {
-      cache: transcript.cache, // Whether the transcript was fetched from the cache
-      transcript: transcript.transcript, // The transcript of the video
-    };
+    try {
+      const transcript = await getYoutubeTranscript(videoId);
+      console.log("Fetched transcript:", transcript);
+      return {
+        cache: transcript.cache,
+        transcript: transcript.transcript,
+      };
+    } catch (error) {
+      console.error("[fetchTranscript] Error fetching transcript:", error);
+      return {
+        error: error instanceof Error ? error.message : "Failed to fetch transcript",
+      };
+    }
   },
 });
 

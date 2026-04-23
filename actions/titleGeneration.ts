@@ -179,7 +179,7 @@ export async function titleGeneration(
     );
 
     const response = await openai.chat.completions.create({
-      model: "gpt-5-mini",
+      model: "gpt-4o-mini",
       messages: [
         {
           role: "system",
@@ -190,17 +190,26 @@ export async function titleGeneration(
           content: userPrompt,
         },
       ],
-      temperature: 0.7, // Good balance for creativity
-      max_completion_tokens: 100,
-      top_p: 0.9, // Good token diversity
-      presence_penalty: 0.1, // Slight penalty for repetition
-      frequency_penalty: 0.1, // Slight penalty for frequency
+      max_completion_tokens: 150,
     });
 
-    let title = response.choices[0]?.message?.content?.trim() || "";
+    // Log full response structure to diagnose null content issues with reasoning models
+    console.log("🎯 Raw response choice:", JSON.stringify(response.choices[0], null, 2));
+    console.log("🎯 Usage:", JSON.stringify(response.usage, null, 2));
+
+    const choice = response.choices[0];
+    const finishReason = choice?.finish_reason;
+    const rawContent = choice?.message?.content;
+
+    console.log("🎯 finish_reason:", finishReason);
+    console.log("🎯 raw content:", rawContent);
+
+    let title = rawContent?.trim() || "";
 
     if (!title) {
-      throw new Error("No title generated in response");
+      throw new Error(
+        `No title generated in response (finish_reason: ${finishReason}, content: ${rawContent === null ? "null" : rawContent === undefined ? "undefined" : `"${rawContent}"`})`
+      );
     }
 
     // Clean up common AI response patterns
@@ -266,9 +275,10 @@ export async function titleGeneration(
         throw new Error("Rate limit exceeded. Please try again in a moment.");
       } else if (error.message.includes("API key")) {
         throw new Error("API configuration error. Please contact support.");
-      } else if (error.message.includes("model")) {
-        throw new Error("Model unavailable. Please try again later.");
+      } else if (error.message.includes("unsupported_value") || error.message.includes("Unsupported value")) {
+        throw new Error(`OpenAI API parameter error: ${error.message}`);
       }
+      throw new Error(`Failed to generate title: ${error.message}`);
     }
 
     throw new Error("Failed to generate title. Please try again.");
@@ -295,7 +305,7 @@ export async function generateMultipleTitles(
 
   try {
     const response = await openai.chat.completions.create({
-      model: "gpt-5-mini",
+      model: "gpt-4o-mini",
       messages: [
         {
           role: "system",
@@ -312,8 +322,7 @@ OUTPUT FORMAT: Return exactly ${count} titles, each on a new line, numbered 1-${
           ),
         },
       ],
-      temperature: 0.8, // Higher creativity for multiple options
-      max_completion_tokens: 300,
+      max_completion_tokens: 400,
     });
 
     const content = response.choices[0]?.message?.content || "";

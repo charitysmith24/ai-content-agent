@@ -17,30 +17,44 @@ const generateTitle = (userId: string) =>
         .describe("Any additional considerations for the title"),
     }),
     execute: async ({ videoId, videoSummary, considerations }) => {
-      const schematicCtx = {
-        company: { id: userId },
-        user: {
-          id: userId,
-        },
-      };
-
-      const isTitleGenerationEnabled = await client.checkFlag(
-        schematicCtx,
-        FeatureFlag.TITLE_GENERATION
-      );
-
-      if (!isTitleGenerationEnabled) {
-        return {
-          error: "Title generation is not enabled, the user must upgrade",
+      try {
+        const schematicCtx = {
+          company: { id: userId },
+          user: {
+            id: userId,
+          },
         };
-      }
 
-      const title = await titleGeneration(
-        videoId,
-        videoSummary,
-        considerations
-      );
-      return { title };
+        let isTitleGenerationEnabled: boolean;
+        try {
+          isTitleGenerationEnabled = await client.checkFlag(
+            schematicCtx,
+            FeatureFlag.TITLE_GENERATION
+          );
+        } catch (flagError) {
+          console.error("[generateTitle] Error checking feature flag:", flagError);
+          return { error: "Error checking feature access" };
+        }
+
+        if (!isTitleGenerationEnabled) {
+          return {
+            error: "Title generation is not enabled, the user must upgrade",
+          };
+        }
+
+        let result;
+        try {
+          result = await titleGeneration(videoId, videoSummary, considerations);
+        } catch (titleError) {
+          console.error("[generateTitle] Error in titleGeneration action:", titleError);
+          return { error: "Failed to generate title" };
+        }
+
+        return { title: result };
+      } catch (err) {
+        console.error("[generateTitle] Unexpected error:", err);
+        return { error: "Internal error in title generation tool" };
+      }
     },
   });
 
