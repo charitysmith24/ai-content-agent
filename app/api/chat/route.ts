@@ -10,8 +10,12 @@ import { getVideoFormUrl } from "@/lib/getVideoFormUrl";
 import { createAnthropic } from "@ai-sdk/anthropic";
 import { currentUser } from "@clerk/nextjs/server";
 import generateTitle from "@/tools/generateTitle";
-import arcjet, { shield, fixedWindow } from "@arcjet/next";
+import arcjet, { shield, slidingWindow } from "@arcjet/next";
 
+// Image generation (gpt-image-1.5) can take 60–90s. Without this, Vercel
+// silently closes the stream at its default 60s limit, causing tool calls
+// to appear successful on the client while producing no output.
+export const maxDuration = 300;
 
 const anthropic = createAnthropic({
   apiKey: process.env.CLAUDE_API_KEY,
@@ -19,51 +23,52 @@ const anthropic = createAnthropic({
 
 const model = anthropic("claude-sonnet-4-6");
 
-// Configure Arcjet with security rules specific to this API endpoint
+// Rate limit per authenticated user (not per IP) so each user has their own
+// quota. slidingWindow is used over fixedWindow to prevent burst exploitation
+// at window boundaries (e.g. 20 rapid clicks just before and after a reset).
+// 20 requests per 5 minutes = ~4/min average, enough for normal usage while
+// preventing concurrent long-running tool calls (image/script generation)
+// from running up unbounded compute costs.
 const aj = arcjet({
   key: process.env.ARCJET_KEY!,
+  characteristics: ["userId"],
   rules: [
-    // Protect against common attacks with Shield
-    shield({
-      mode: "DRY_RUN", // Start in DRY_RUN mode to monitor without blocking
-    }),
-    // Rate limit requests to prevent abuse
-    fixedWindow({
-      mode: "DRY_RUN", // Start in DRY_RUN mode
-      window: "5m", // 5 minute window
-      max: 30, // Maximum 30 requests per window
+    shield({ mode: "LIVE" }),
+    slidingWindow({
+      mode: "LIVE",
+      window: "5m",
+      max: 20,
     }),
   ],
 });
 
 export async function POST(req: Request) {
-  // Apply Arcjet protection to this route
-  const decision = await aj.protect(req);
-
-  // Log decision results for monitoring
-  console.log("Arcjet Decision:", decision.conclusion);
-
-  // If the request is denied by Arcjet, return a 429 response
-  if (decision.isDenied()) {
-    if (decision.reason.isRateLimit()) {
-      return NextResponse.json(
-        { error: "Too many requests. Please try again later." },
-        { status: 429 }
-      );
-    } else {
-      return NextResponse.json(
-        { error: "Request blocked for security reasons." },
-        { status: 403 }
-      );
-    }
-  }
-
-  const { messages: rawMessages, videoId } = await req.json();
+  // Authenticate first so the user ID can be passed to Arcjet for
+  // per-user rate limiting rather than the default per-IP limiting.
   const user = await currentUser();
 
   if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
+
+  const decision = await aj.protect(req, { userId: user.id });
+
+  console.log("Arcjet Decision:", decision.conclusion);
+
+  if (decision.isDenied()) {
+    if (decision.reason.isRateLimit()) {
+      return NextResponse.json(
+        { error: "Too many requests. Please wait a moment and try again." },
+        { status: 429 }
+      );
+    }
+    return NextResponse.json(
+      { error: "Request blocked for security reasons." },
+      { status: 403 }
+    );
+  }
+
+  const { messages: rawMessages, videoId } = await req.json();
 
   // Strip incomplete tool invocations from the conversation history.
   // When a tool call fails mid-stream (e.g. a model error), useChat stores it
