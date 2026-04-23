@@ -6,7 +6,6 @@ import {
   internalAction,
   getRequiredEnvVar,
   formatError,
-  safeJsonParse,
   base64ToUint8Array,
 } from "./utils";
 import { httpAction } from "./_generated/server";
@@ -379,66 +378,50 @@ export const processVoiceover = internalAction({
       // Check if ElevenLabs API key is available
       const apiKey = getRequiredEnvVar("ELEVENLABS_API_KEY");
 
-      // Initialize ElevenLabs for server-side use (or call your n8n workflow)
-
-      // OPTION 1: For direct ElevenLabs integration, uncomment this:
-      // ----------------------------------------------------------------
-      // Use the ElevenLabs API endpoint directly
-      const voiceId = args.voiceName; // This assumes voiceName contains the ElevenLabs voice ID
+      // Use the ElevenLabs JS SDK for proper error handling and retries
+      const voiceId = args.voiceName; // voiceName holds the ElevenLabs voice ID
 
       try {
-        // Call ElevenLabs API
+        const { ElevenLabsClient } = await import("@elevenlabs/elevenlabs-js");
+
+        const elevenlabs = new ElevenLabsClient({ apiKey });
+
         console.log(`Calling ElevenLabs API for voice ID: ${voiceId}`);
-        const response = await fetch(
-          `https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              "xi-api-key": apiKey,
-            },
-            body: JSON.stringify({
-              text: args.text,
-              model_id: "eleven_multilingual_v2",
-              voice_settings: {
-                stability: 0.5,
-                similarity_boost: 0.75,
-              },
-            }),
-          }
-        );
 
-        if (!response.ok) {
-          // Try to parse error response
-          const errorText = await response.text();
-          console.error(`ElevenLabs API error response: ${errorText}`);
-
-          const errorData = safeJsonParse(errorText, {
-            detail: { message: response.statusText },
-          });
-          const errorMessage =
-            errorData?.detail?.message || response.statusText;
-          throw new Error(
-            `ElevenLabs API error: ${errorMessage} (${response.status})`
-          );
-        }
+        // eleven_flash_v2_5 is faster and cheaper; fall back to multilingual v2 for quality
+        const audioStream = await elevenlabs.textToSpeech.convert(voiceId, {
+          text: args.text,
+          modelId: "eleven_multilingual_v2",
+          outputFormat: "mp3_44100_128",
+          voiceSettings: {
+            stability: 0.5,
+            similarityBoost: 0.75,
+          },
+        });
 
         console.log(`Successfully received response from ElevenLabs API`);
 
-        // Get the audio data
-        const audioArrayBuffer = await response.arrayBuffer();
-        if (!audioArrayBuffer || audioArrayBuffer.byteLength === 0) {
+        // Collect stream chunks into a single buffer
+        const chunks: Uint8Array[] = [];
+        for await (const chunk of audioStream) {
+          chunks.push(chunk);
+        }
+
+        const totalLength = chunks.reduce((acc, c) => acc + c.length, 0);
+        if (totalLength === 0) {
           throw new Error("Received empty audio data from ElevenLabs");
         }
 
-        console.log(
-          `Received audio data of size: ${audioArrayBuffer.byteLength} bytes`
-        );
+        console.log(`Received audio data of size: ${totalLength} bytes`);
 
-        // Create a Blob directly from the ArrayBuffer without using Buffer
-        const audioBlob = new Blob([new Uint8Array(audioArrayBuffer)], {
-          type: "audio/mpeg",
-        });
+        const merged = new Uint8Array(totalLength);
+        let offset = 0;
+        for (const chunk of chunks) {
+          merged.set(chunk, offset);
+          offset += chunk.length;
+        }
+
+        const audioBlob = new Blob([merged], { type: "audio/mpeg" });
         console.log(
           `Created audio blob of size: ${audioBlob.size} bytes with type: ${audioBlob.type}`
         );
@@ -579,7 +562,7 @@ export const handleVoiceoverCallback = httpAction(async (ctx, request) => {
 
     // Convert base64 to Uint8Array using utility function
     const audioData = base64ToUint8Array(data.audioBase64);
-    const audioBlob = new Blob([audioData]);
+    const audioBlob = new Blob([audioData.buffer as ArrayBuffer]);
 
     // Upload the audio to Convex storage
     const storageId = await ctx.storage.store(audioBlob);

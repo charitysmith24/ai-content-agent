@@ -55,11 +55,14 @@ function AiAgentChat({ videoId }: { videoId: string }) {
   const bottomRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
 
-  const { messages, input, handleInputChange, handleSubmit, append, status } =
+  const { messages, input, handleInputChange, handleSubmit, append, status, error } =
     useChat({
       maxSteps: 5,
       body: {
         videoId,
+      },
+      onError: (err) => {
+        console.error("[useChat] onError:", err);
       },
     });
 
@@ -113,6 +116,7 @@ function AiAgentChat({ videoId }: { videoId: string }) {
           });
           break;
         case "error":
+          console.error("[AiAgentChat] Chat error details:", error);
           toast("Whoops! Something went wrong, please try again.", {
             id: "ai-status",
             icon: <BotIcon className="w-4 h-4" />,
@@ -125,7 +129,7 @@ function AiAgentChat({ videoId }: { videoId: string }) {
     } catch (error) {
       console.error("[AiAgentChat] Status effect error:", error);
     }
-  }, [status]);
+  }, [status, error]);
 
   /*
    * TODO: React 19 Migration

@@ -7,8 +7,11 @@ import { Id } from "@/convex/_generated/dataModel";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { FeatureFlag } from "@/features/flags";
-import { useSchematicEntitlement } from "@schematichq/schematic-react";
+import { FeatureFlag, featureFlagEvents } from "@/features/flags";
+import {
+  useSchematicEntitlement,
+  useSchematicEvents,
+} from "@schematichq/schematic-react";
 import { ImageIcon, Camera, Pencil, RefreshCw, Link } from "lucide-react";
 import {
   Dialog,
@@ -99,6 +102,7 @@ function SceneDetails({ sceneId, scriptId, videoId }: SceneDetailsProps) {
   const { value: isSceneImageGenerationEnabled } = useSchematicEntitlement(
     FeatureFlag.SCENE_IMAGE_GENERATION
   );
+  const { track } = useSchematicEvents();
 
   // Use the proper API references
   const scenes = useQuery(
@@ -221,6 +225,13 @@ function SceneDetails({ sceneId, scriptId, videoId }: SceneDetailsProps) {
 
       if (result.success) {
         toast.success("Image generated successfully");
+        // Track the event client-side so the Usage component updates immediately.
+        // The server action only updates Schematic's backend; the client-side
+        // context (useSchematicEntitlement) won't reflect new usage until track
+        // is also called here.
+        track({
+          event: featureFlagEvents[FeatureFlag.SCENE_IMAGE_GENERATION].event,
+        });
       }
     } catch (error) {
       console.error(error);

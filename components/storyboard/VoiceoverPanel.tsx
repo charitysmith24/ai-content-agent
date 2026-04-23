@@ -17,6 +17,7 @@ import {
   Volume2,
   RefreshCw,
   AlertTriangle,
+  RotateCcw,
 } from "lucide-react";
 import {
   Select,
@@ -84,6 +85,7 @@ function VoiceoverPanel({ sceneId, scriptId, videoId }: VoiceoverPanelProps) {
   const { user } = useUser();
   const [isGenerating, setIsGenerating] = useState(false);
   const [selectedVoice, setSelectedVoice] = useState<string>("");
+  const [voiceoverText, setVoiceoverText] = useState<string>("");
 
   const { value: isVoiceoverEnabled } = useSchematicEntitlement(
     FeatureFlag.VOICEOVER_GENERATION
@@ -101,6 +103,13 @@ function VoiceoverPanel({ sceneId, scriptId, videoId }: VoiceoverPanelProps) {
   );
 
   const scene = scenes?.find((s) => s._id === sceneId);
+
+  // Sync editable text whenever the scene changes
+  useEffect(() => {
+    if (scene?.sceneContent !== undefined) {
+      setVoiceoverText(scene.sceneContent);
+    }
+  }, [scene?.sceneContent]);
 
   // Get voiceover if it exists for this scene
   const voiceover = useQuery(
@@ -165,6 +174,8 @@ function VoiceoverPanel({ sceneId, scriptId, videoId }: VoiceoverPanelProps) {
   const handleGenerateVoiceover = async () => {
     if (!sceneId || !scriptId || !user?.id || !scene || !selectedVoice) return;
 
+    const textToGenerate = voiceoverText.trim() || scene.sceneContent;
+
     try {
       setIsGenerating(true);
 
@@ -173,7 +184,7 @@ function VoiceoverPanel({ sceneId, scriptId, videoId }: VoiceoverPanelProps) {
         sceneId: sceneId as Id<"storyboard_scenes">,
         userId: user.id,
         videoId,
-        text: scene.sceneContent,
+        text: textToGenerate,
         voiceName: selectedVoice,
       });
 
@@ -428,15 +439,37 @@ function VoiceoverPanel({ sceneId, scriptId, videoId }: VoiceoverPanelProps) {
             </div>
           )}
 
-          {/* Text Preview */}
+          {/* Editable Voice-Over Text */}
           {scene && (
             <div className="mt-4">
-              <Label className="text-xs text-gray-500 dark:text-gray-400 mb-1 block">
-                Voice-Over Text:
-              </Label>
-              <div className="text-xs text-gray-700 dark:text-gray-300 p-3 bg-gray-50 dark:bg-gray-800/30 border rounded-md max-h-[100px] overflow-y-auto">
-                {scene.sceneContent}
+              <div className="flex items-center justify-between mb-1">
+                <Label className="text-xs text-gray-500 dark:text-gray-400">
+                  Voice-Over Text:
+                </Label>
+                <button
+                  type="button"
+                  onClick={() => setVoiceoverText(scene.sceneContent)}
+                  title="Reset to original scene content"
+                  className="inline-flex items-center gap-1 text-xs text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors"
+                >
+                  <RotateCcw className="h-3 w-3" />
+                  Reset
+                </button>
               </div>
+              <textarea
+                value={voiceoverText}
+                onChange={(e) => setVoiceoverText(e.target.value)}
+                disabled={voiceover?.status === "processing" || isGenerating}
+                rows={5}
+                placeholder="Edit the text that will be spoken by the voice-over..."
+                className="w-full text-xs text-gray-700 dark:text-gray-300 p-3 bg-gray-50 dark:bg-gray-800/30 border rounded-md resize-y focus:outline-none focus:ring-2 focus:ring-primary/50 disabled:opacity-60 disabled:cursor-not-allowed"
+              />
+              {voiceoverText !== scene.sceneContent && (
+                <p className="text-[10px] text-amber-500 dark:text-amber-400 mt-1">
+                  Text has been edited — the original scene content will not be
+                  used.
+                </p>
+              )}
             </div>
           )}
         </>

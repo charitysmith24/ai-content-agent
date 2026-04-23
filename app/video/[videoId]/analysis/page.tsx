@@ -73,7 +73,7 @@ function AnalysisPage() {
   return (
     <div className="container mx-auto mb-9 px-4">
       {/* Video Navigation */}
-      <div className="pt-8">
+      <div className="pt-8 px-3 md:px-6">
         <VideoNavigation videoId={videoId} />
       </div>
 

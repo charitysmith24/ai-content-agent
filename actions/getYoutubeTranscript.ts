@@ -5,7 +5,7 @@ import { FeatureFlag, featureFlagEvents } from "@/features/flags";
 import { client } from "@/lib/schematic";
 import { currentUser } from "@clerk/nextjs/server";
 import { ConvexHttpClient } from "convex/browser";
-import { Innertube } from "youtubei.js";
+import { fetchTranscript as ytFetchTranscript } from "youtube-transcript-plus";
 
 const convex = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
 
@@ -14,34 +14,22 @@ export interface TranscriptEntry {
   timestamp: string;
 }
 
-const youtube = await Innertube.create({
-  lang: "en",
-  location: "US",
-  retrieve_player: false,
-});
-
-function formatTimestamp(start_ms: number): string {
-  const minutes = Math.floor(start_ms / 60000);
-  const seconds = ((start_ms % 60000) / 1000).toFixed(0);
+function formatTimestamp(offsetSeconds: number): string {
+  const minutes = Math.floor(offsetSeconds / 60);
+  const seconds = Math.floor(offsetSeconds % 60);
   return `${minutes}:${seconds.toString().padStart(2, "0")}`;
 }
 
 async function fetchTranscript(videoId: string): Promise<TranscriptEntry[]> {
-  try {
-    const info = await youtube.getInfo(videoId);
-    const transcriptData = await info.getTranscript();
-    const transcript: TranscriptEntry[] =
-      transcriptData.transcript.content?.body?.initial_segments.map(
-        (segment) => ({
-          text: segment.snippet.text ?? "N/A",
-          timestamp: formatTimestamp(Number(segment.start_ms)),
-        })
-      ) ?? [];
-    return transcript;
-  } catch (error) {
-    console.error("Error fetching transcript", error);
-    throw error;
-  }
+  // youtube-transcript-plus bypasses the Innertube /player and /get_transcript
+  // endpoints (both now require BotGuard attestation from a real browser).
+  // It fetches the YouTube page HTML directly and extracts caption track URLs.
+  const segments = await ytFetchTranscript(videoId, { lang: "en" });
+
+  return segments.map((segment) => ({
+    text: segment.text,
+    timestamp: formatTimestamp(segment.offset),
+  }));
 }
 
 export async function getYoutubeTranscript(videoId: string) {

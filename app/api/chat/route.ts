@@ -14,14 +14,10 @@ import arcjet, { shield, fixedWindow } from "@arcjet/next";
 
 
 const anthropic = createAnthropic({
-  // custom settings
   apiKey: process.env.CLAUDE_API_KEY,
-  headers: {
-    "anthropic-beta": "token-efficient-tools-2025-02-19",
-  },
 });
 
-const model = anthropic("claude-3-7-sonnet-20250219");
+const model = anthropic("claude-sonnet-4-6");
 
 // Configure Arcjet with security rules specific to this API endpoint
 const aj = arcjet({
@@ -62,12 +58,38 @@ export async function POST(req: Request) {
     }
   }
 
-  const { messages, videoId } = await req.json();
+  const { messages: rawMessages, videoId } = await req.json();
   const user = await currentUser();
 
   if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
+
+  // Strip incomplete tool invocations from the conversation history.
+  // When a tool call fails mid-stream (e.g. a model error), useChat stores it
+  // with state:"call" and no result. Passing that to streamText causes
+  // AI_MessageConversionError because Anthropic requires every tool call to
+  // have a matching result. Filtering them out here keeps the history valid.
+  const messages = rawMessages.map(
+    (msg: {
+      role: string;
+      toolInvocations?: Array<{ state: string }>;
+      parts?: Array<{ type: string; toolInvocation?: { state: string } }>;
+    }) => {
+      if (msg.role !== "assistant") return msg;
+      return {
+        ...msg,
+        toolInvocations: msg.toolInvocations?.filter(
+          (inv) => inv.state === "result"
+        ),
+        parts: msg.parts?.filter(
+          (part) =>
+            part.type !== "tool-invocation" ||
+            part.toolInvocation?.state === "result"
+        ),
+      };
+    }
+  );
 
   const videoDetails = await getVideoDetails(videoId);
 
@@ -116,9 +138,17 @@ export async function POST(req: Request) {
       generateTitle: generateTitle(user.id),
       generateScript: generateScript(user.id),
     },
+    onError: ({ error }) => {
+      console.error("[Chat API] streamText error:", error);
+    },
+    onFinish: ({ usage, finishReason, steps }) => {
+      console.log("[Chat API] Stream finished:", {
+        finishReason,
+        steps: steps.length,
+        usage,
+      });
+    },
   });
-
-  console.log({ result });
 
   return result.toDataStreamResponse();
 }

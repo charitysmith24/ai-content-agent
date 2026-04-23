@@ -7,16 +7,12 @@ import { client } from "@/lib/schematic";
 import { currentUser } from "@clerk/nextjs/server";
 import OpenAI from "openai";
 
-// Using DALL-E 3 for thumbnail generation
-// This model is preferred for video thumbnails due to its high quality and realistic style
-const IMAGE_SIZE = "1024x1024" as const; // Supported: "1024x1024", "1024x1536", "1536x1024", or "auto"
+const IMAGE_SIZE = "1024x1024" as const;
 const convexClient = getConvexClient();
 
 /**
- * Generate a thumbnail image using OpenAI's DALL-E 3 model
- *
- * This action is specifically for generating video thumbnails and is gated by
- * the IMAGE_GENERATION feature flag (different from scene image generation).
+ * Generate a thumbnail image using OpenAI's gpt-image-1.5 model.
+ * Gated by the IMAGE_GENERATION feature flag (separate from scene image generation).
  */
 export const dalleImageGeneration = async (prompt: string, videoId: string) => {
   const user = await currentUser();
@@ -27,7 +23,6 @@ export const dalleImageGeneration = async (prompt: string, videoId: string) => {
   }
 
   try {
-    // Check feature flag
     const schematicCtx = {
       company: { id: user.id },
       user: {
@@ -35,7 +30,6 @@ export const dalleImageGeneration = async (prompt: string, videoId: string) => {
       },
     };
 
-    // Check the IMAGE_GENERATION feature flag (for thumbnails)
     const isImageGenerationEnabled = await client.checkFlag(
       schematicCtx,
       FeatureFlag.IMAGE_GENERATION
@@ -54,29 +48,23 @@ export const dalleImageGeneration = async (prompt: string, videoId: string) => {
       throw new Error("Failed to generate image prompt");
     }
 
-    console.log("🎨 Generating image with DALL-E 3 model:", prompt);
+    console.log("🎨 Generating image with gpt-image-1.5 model:", prompt);
 
-    // Generate the image using dall-e-3 following official documentation
     const imageResponse = await openai.images.generate({
-      model: "dall-e-3",
+      model: "gpt-image-1.5",
       prompt: prompt,
       size: IMAGE_SIZE,
-      n: 1, // number of images to generate
-      response_format: "b64_json", // Request base64 data explicitly
+      quality: "high",
     });
 
-    // Fix the linter error by checking if data exists
     if (!imageResponse.data || imageResponse.data.length === 0) {
       throw new Error("No image data received from OpenAI");
     }
 
-    // Handle base64 response
     const imageData = imageResponse.data[0];
 
     if (!imageData.b64_json) {
-      throw new Error(
-        "Expected base64 image data but received different format"
-      );
+      throw new Error("Expected base64 image data but received different format");
     }
 
     console.log("📥 Processing base64 image data...");
@@ -133,7 +121,7 @@ export const dalleImageGeneration = async (prompt: string, videoId: string) => {
       imageUrl: dbImageUrl,
     };
   } catch (error) {
-    console.error("❌ Error in DALL-E 3 generation process:", {
+    console.error("❌ Error in gpt-image-1.5 generation process:", {
       videoId,
       userId: user.id,
       error: error instanceof Error ? error.message : "Unknown error",

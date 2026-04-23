@@ -1,15 +1,13 @@
 "use server";
 
 import { api } from "@/convex/_generated/api";
-import { FeatureFlag, featureFlagEvents } from "@/features/flags";
+import { FeatureFlag } from "@/features/flags";
 import { getConvexClient } from "@/lib/convex";
 import { client } from "@/lib/schematic";
 import { currentUser } from "@clerk/nextjs/server";
 import OpenAI from "openai";
 import { Id } from "@/convex/_generated/dataModel";
 
-// Using GPT-Image-1 for storyboard scene image generation
-// This model is preferred for detailed scene images with precise control over visual elements
 const IMAGE_SIZE = "1536x1024" as const; // Supported: "1024x1024", "1024x1536", "1536x1024", or "auto"
 const convexClient = getConvexClient();
 
@@ -39,13 +37,9 @@ async function imageUrlToBase64(imageUrl: string): Promise<string> {
 }
 
 /**
- * Generate a detailed scene image using OpenAI's GPT-Image-1 model
- *
- * This action is specifically for generating storyboard scene images and is gated by
- * the SCENE_IMAGE_GENERATION feature flag (different from thumbnail generation).
- *
- * The scene images include more context like emotional tone and visual elements
- * to create a more accurate representation of the scene.
+ * Generate a detailed scene image using OpenAI's gpt-image-1.5 model.
+ * Gated by the SCENE_IMAGE_GENERATION feature flag (different from thumbnail generation).
+ * Vision analysis for reference image consistency uses gpt-5.
  */
 export const sceneImageGeneration = async (
   sceneId: string,
@@ -121,7 +115,12 @@ export const sceneImageGeneration = async (
             referenceImageBase64 = await imageUrlToBase64(imageUrl);
             referenceSceneInfo = `Reference Scene ${refScene.sceneIndex + 1}: ${refScene.sceneName}`;
 
-            // Use Vision API to analyze the reference image
+            // Use Vision API to analyze the reference image.
+            // gpt-4o is used here instead of gpt-5: gpt-5 behaves as a
+            // reasoning model and returns message.content = null (reasoning
+            // tokens are internal), so referenceImageAnalysis silently becomes
+            // "" and the reference branch is never taken. gpt-4o reliably
+            // returns a plain string for vision analysis.
             console.log("🔍 Analyzing reference image with Vision API...");
             const visionResponse = await openai.chat.completions.create({
               model: "gpt-4o",
@@ -145,9 +144,18 @@ export const sceneImageGeneration = async (
               max_tokens: 300,
             });
 
-            referenceImageAnalysis =
-              visionResponse.choices[0]?.message?.content || "";
-            console.log("✅ Reference image analyzed successfully");
+            const analysisContent =
+              visionResponse.choices[0]?.message?.content;
+
+            if (!analysisContent) {
+              console.warn(
+                "⚠️ Vision API returned null/empty content — reference will not be applied. Model refusal:",
+                visionResponse.choices[0]?.message?.refusal ?? "none"
+              );
+            } else {
+              referenceImageAnalysis = analysisContent;
+              console.log("✅ Reference image analyzed successfully");
+            }
           }
         }
       } catch (error) {
@@ -207,9 +215,9 @@ export const sceneImageGeneration = async (
       console.log("📎 Using reference from:", referenceSceneInfo);
     }
 
-    // Generate the image using GPT-Image-1 (standard image generation, no reference image passed)
+    // Generate the image using gpt-image-1.5
     const imageResponse = await openai.images.generate({
-      model: "gpt-image-1",
+      model: "gpt-image-1.5",
       prompt: detailedPrompt,
       size: IMAGE_SIZE,
       moderation: "auto",
@@ -223,7 +231,7 @@ export const sceneImageGeneration = async (
       throw new Error("No image data received from OpenAI");
     }
 
-    // Handle base64 response (default for gpt-image-1)
+    // Handle base64 response (default for gpt-image-1.5)
     const imageData = imageResponse.data[0];
 
     if (!imageData.b64_json) {
@@ -242,14 +250,36 @@ export const sceneImageGeneration = async (
     console.log("✅ Got upload URL");
 
     // Step 2: Upload the image to the convex storage bucket
+    // Retry up to 3 times — ECONNRESET can occur after long generation times
     console.log("📁 Uploading image to storage...");
-    const result = await fetch(postUrl, {
-      method: "POST",
-      headers: { "Content-Type": imageBlob.type },
-      body: imageBlob,
-    });
+    let result: Response | null = null;
+    let uploadAttempt = 0;
+    const MAX_UPLOAD_ATTEMPTS = 3;
 
-    if (!result.ok) {
+    while (uploadAttempt < MAX_UPLOAD_ATTEMPTS) {
+      uploadAttempt++;
+      try {
+        result = await fetch(postUrl, {
+          method: "POST",
+          headers: { "Content-Type": imageBlob.type },
+          body: imageBlob,
+          // keepAlive ensures the connection is reused and not dropped
+          // @ts-expect-error — Node.js fetch supports this, types lag behind
+          keepAlive: true,
+        });
+        break; // success — exit retry loop
+      } catch (uploadErr) {
+        const isLastAttempt = uploadAttempt === MAX_UPLOAD_ATTEMPTS;
+        console.warn(
+          `⚠️ Upload attempt ${uploadAttempt} failed: ${(uploadErr as Error).message}`
+        );
+        if (isLastAttempt) throw uploadErr;
+        // Brief pause before retry
+        await new Promise((r) => setTimeout(r, 1500 * uploadAttempt));
+      }
+    }
+
+    if (!result?.ok) {
       throw new Error("Failed to upload image to storage");
     }
 
@@ -265,16 +295,8 @@ export const sceneImageGeneration = async (
     });
     console.log("✅ Updated scene with image reference");
 
-    // Track the scene image generation event
-    await client.track({
-      event: featureFlagEvents[FeatureFlag.SCENE_IMAGE_GENERATION].event,
-      company: {
-        id: user.id,
-      },
-      user: {
-        id: user.id,
-      },
-    });
+    // Usage tracking is handled client-side (SceneDetails.tsx) so that
+    // useSchematicEntitlement reflects the new count immediately in the UI.
 
     // Log success with reference info
     if (referenceImageAnalysis) {
